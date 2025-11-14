@@ -57,12 +57,12 @@ def format_runtime(minutes):
     if minutes is None or minutes == 0:
         return "Unknown length"
 
-    minutes = float(minutes)
+    minutes = int(minutes)
     if minutes < 60:
-        return f"{int(minutes)} minutes"
+        return f"{minutes} minutes"
 
-    hours = int(minutes // 60)
-    mins = int(minutes % 60)
+    hours = minutes // 60
+    mins = minutes % 60
     if mins == 0:
         return f"{hours} hour{'s' if hours != 1 else ''}"
     return f"{hours} hour{'s' if hours != 1 else ''} {mins} minute{'s' if mins != 1 else ''}"
@@ -130,8 +130,7 @@ def list_library(auth):
                 "runtime_length",
                 "vLength",
                 "length",
-                "duration",
-                "runtime_length_ms"
+                "duration"
             ]
 
             for field in runtime_fields:
@@ -143,22 +142,10 @@ def list_library(auth):
 
             minutes = None
             if isinstance(runtime, dict):
-                if "ms" in runtime:
-                    ms = runtime.get("ms", 0)
-                    if ms:
-                        minutes = ms / 60000
-                elif "min" in runtime:
-                    minutes = runtime.get("min")
-                else:
-                    display = runtime.get("display") or runtime.get(
-                        "formatted") or runtime.get("value")
-                    if display and isinstance(display, (int, float)):
-                        minutes = display
+                if "min" in runtime:
+                    minutes = int(runtime.get("min", 0))
             elif isinstance(runtime, (int, float)):
-                if runtime > 100000:
-                    minutes = runtime / 60000
-                else:
-                    minutes = runtime
+                minutes = int(runtime)
 
             runtime_str = format_runtime(minutes)
 
