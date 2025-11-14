@@ -2,7 +2,7 @@
 
 A terminal-based user interface (TUI) client for Audible, written in Python 3.
 
-Listen to your audiobooks, browse your library, search for new titles, and manage your Audible account directly from your terminal.
+Listen to your audiobooks or podcasts, browse your library, search for new titles, add them to your wishlist, and more.
 
 ## What it does
 
