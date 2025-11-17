@@ -11,10 +11,15 @@ For now, it can:
 - [x] list your entire library
 - [x] list your unfinished books with progress information
 - [ ] play a book (start when it was last paused, mark the position when it's paused)
+- [ ] open a pdf if one's attached to the book
 - [ ] mark a book as finished
 - [ ] mark a book as unfinished
 - [ ] search for new titles
 - [ ] add a book to your wishlist
+
+Once it'll do all of this (more or less), I'll think of the TUI interface.
+
+## Credentials
 
 Login is handled and credentials are stored in `~/.config/auditui/auth.json`.
 
