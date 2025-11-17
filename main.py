@@ -127,8 +127,6 @@ class Auditui:
             runtime_str = Auditui.format_duration(
                 minutes, unit='minutes', default_none="Unknown length")
 
-            asin = product.get("asin") or item.get("asin", "")
-
             percent_complete = item.get("percent_complete")
             listening_status = item.get("listening_status", {})
 
@@ -154,9 +152,6 @@ class Auditui:
                         time_remaining_seconds, unit='seconds')
                     if time_remaining_str:
                         print(f"   Time remaining: {time_remaining_str}")
-
-            if asin:
-                print(f"   ASIN: {asin}")
 
             print()
 
