@@ -169,8 +169,6 @@ class Auditui:
 
         except Exception as e:
             print(f"Error fetching library: {e}")
-            import traceback
-            traceback.print_exc()
 
 
 def main():
