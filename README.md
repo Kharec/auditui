@@ -6,7 +6,15 @@ Listen to your audiobooks or podcasts, browse your library, search for new title
 
 ## What it does
 
-For now, it just lists your library.
+For now, it can:
+
+- [x] list your entire library
+- [x] list your unfinished books with progress information
+- [ ] play a book (start when it was last paused, mark the position when it's paused)
+- [ ] mark a book as finished
+- [ ] mark a book as unfinished
+- [ ] search for new titles
+- [ ] add a book to your wishlist
 
 Login is handled and credentials are stored in `~/.config/auditui/auth.json`.
 
