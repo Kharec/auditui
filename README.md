@@ -17,7 +17,9 @@ For now, it can:
 - [ ] search for new titles
 - [ ] add a book to your wishlist
 
-Once it'll do all of this (more or less), I'll think of the TUI interface.
+Once it'll do all of this (more or less), I'll think of a better code structure and the TUI interface.
+
+I'm still experimenting the `audible` library and its API.
 
 ## Credentials
 
@@ -27,4 +29,4 @@ OTP is supported if you use a two-factor authentication device.
 
 ## License
 
-GNU General Public License v3.0
+This project is licensed under the GPLv3+ License. See the [LICENSE](LICENSE) file for details.
