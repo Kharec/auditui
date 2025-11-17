@@ -12,11 +12,13 @@ except ImportError:
 
 
 class Auditui:
+    AUTH_PATH = Path.home() / ".config" / "auditui" / "auth.json"
+
     def __init__(self):
         self.auth = None
 
     def login_to_audible(self):
-        auth_file = Path.home() / ".config" / "auditui" / "auth.json"
+        auth_file = self.AUTH_PATH
         auth_file.parent.mkdir(parents=True, exist_ok=True)
 
         if auth_file.exists():
