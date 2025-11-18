@@ -60,8 +60,7 @@ class Auditui:
             traceback.print_exc()
             sys.exit(1)
 
-    @staticmethod
-    def format_duration(value, unit='minutes', default_none=None):
+    def format_duration(self, value, unit='minutes', default_none=None):
         if value is None or value <= 0:
             return default_none
 
@@ -79,23 +78,20 @@ class Auditui:
             return f"{hours} hour{'s' if hours != 1 else ''}"
         return f"{hours} hour{'s' if hours != 1 else ''} {mins} minute{'s' if mins != 1 else ''}"
 
-    @staticmethod
-    def _extract_title(item):
+    def _extract_title(self, item):
         product = item.get("product", {})
         return (product.get("title") or
                 item.get("title") or
                 product.get("asin", "Unknown Title"))
 
-    @staticmethod
-    def _extract_authors(item):
+    def _extract_authors(self, item):
         product = item.get("product", {})
         authors = product.get("authors") or product.get("contributors") or []
         if not authors and "authors" in item:
             authors = item.get("authors", [])
         return ", ".join([a.get("name", "") for a in authors if isinstance(a, dict)])
 
-    @staticmethod
-    def _extract_runtime_minutes(item):
+    def _extract_runtime_minutes(self, item):
         product = item.get("product", {})
         runtime_fields = [
             "runtime_length_min",
@@ -124,8 +120,7 @@ class Auditui:
 
         return None
 
-    @staticmethod
-    def _extract_progress_info(item):
+    def _extract_progress_info(self, item):
         percent_complete = item.get("percent_complete")
         listening_status = item.get("listening_status", {})
 
@@ -138,8 +133,7 @@ class Auditui:
 
         return percent_complete, time_remaining_seconds
 
-    @staticmethod
-    def _display_items(items):
+    def _display_items(self, items):
         if not items:
             print("No books found.")
             return
@@ -147,12 +141,12 @@ class Auditui:
         print("-" * 80)
 
         for idx, item in enumerate(items, 1):
-            title = Auditui._extract_title(item)
-            author_names = Auditui._extract_authors(item)
-            minutes = Auditui._extract_runtime_minutes(item)
-            runtime_str = Auditui.format_duration(
+            title = self._extract_title(item)
+            author_names = self._extract_authors(item)
+            minutes = self._extract_runtime_minutes(item)
+            runtime_str = self.format_duration(
                 minutes, unit='minutes', default_none="Unknown length")
-            percent_complete, time_remaining_seconds = Auditui._extract_progress_info(item)
+            percent_complete, time_remaining_seconds = self._extract_progress_info(item)
 
             print(f"{idx}. {title}")
             if author_names:
@@ -164,7 +158,7 @@ class Auditui:
                 print(f"   Progress: {percent_str} read")
 
                 if time_remaining_seconds:
-                    time_remaining_str = Auditui.format_duration(
+                    time_remaining_str = self.format_duration(
                         time_remaining_seconds, unit='seconds')
                     if time_remaining_str:
                         print(f"   Time remaining: {time_remaining_str}")
