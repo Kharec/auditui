@@ -80,6 +80,65 @@ class Auditui:
         return f"{hours} hour{'s' if hours != 1 else ''} {mins} minute{'s' if mins != 1 else ''}"
 
     @staticmethod
+    def _extract_title(item):
+        product = item.get("product", {})
+        return (product.get("title") or
+                item.get("title") or
+                product.get("asin", "Unknown Title"))
+
+    @staticmethod
+    def _extract_authors(item):
+        product = item.get("product", {})
+        authors = product.get("authors") or product.get("contributors") or []
+        if not authors and "authors" in item:
+            authors = item.get("authors", [])
+        return ", ".join([a.get("name", "") for a in authors if isinstance(a, dict)])
+
+    @staticmethod
+    def _extract_runtime_minutes(item):
+        product = item.get("product", {})
+        runtime_fields = [
+            "runtime_length_min",
+            "runtime_length",
+            "vLength",
+            "length",
+            "duration"
+        ]
+
+        runtime = None
+        for field in runtime_fields:
+            runtime = product.get(field)
+            if runtime is None:
+                runtime = item.get(field)
+            if runtime is not None:
+                break
+
+        if runtime is None:
+            return None
+
+        if isinstance(runtime, dict):
+            if "min" in runtime:
+                return int(runtime.get("min", 0))
+        elif isinstance(runtime, (int, float)):
+            return int(runtime)
+
+        return None
+
+    @staticmethod
+    def _extract_progress_info(item):
+        percent_complete = item.get("percent_complete")
+        listening_status = item.get("listening_status", {})
+
+        if isinstance(listening_status, dict):
+            if percent_complete is None:
+                percent_complete = listening_status.get("percent_complete")
+            time_remaining_seconds = listening_status.get("time_remaining_seconds")
+        else:
+            time_remaining_seconds = None
+
+        return percent_complete, time_remaining_seconds
+
+    @staticmethod
     def _display_items(items):
         if not items:
             print("No books found.")
@@ -88,58 +147,12 @@ class Auditui:
         print("-" * 80)
 
         for idx, item in enumerate(items, 1):
-            product = item.get("product", {})
-
-            title = product.get("title")
-            if not title:
-                title = item.get("title")
-            if not title:
-                title = product.get("asin", "Unknown Title")
-
-            authors = product.get("authors", [])
-            if not authors:
-                authors = product.get("contributors", [])
-            if not authors and "authors" in item:
-                authors = item.get("authors", [])
-            author_names = ", ".join([a.get("name", "")
-                                     for a in authors if isinstance(a, dict)])
-
-            runtime = None
-            runtime_fields = [
-                "runtime_length_min",
-                "runtime_length",
-                "vLength",
-                "length",
-                "duration"
-            ]
-
-            for field in runtime_fields:
-                runtime = product.get(field)
-                if runtime is None:
-                    runtime = item.get(field)
-                if runtime is not None:
-                    break
-
-            minutes = None
-            if isinstance(runtime, dict):
-                if "min" in runtime:
-                    minutes = int(runtime.get("min", 0))
-            elif isinstance(runtime, (int, float)):
-                minutes = int(runtime)
-
+            title = Auditui._extract_title(item)
+            author_names = Auditui._extract_authors(item)
+            minutes = Auditui._extract_runtime_minutes(item)
             runtime_str = Auditui.format_duration(
                 minutes, unit='minutes', default_none="Unknown length")
-
-            percent_complete = item.get("percent_complete")
-            listening_status = item.get("listening_status", {})
-
-            if isinstance(listening_status, dict):
-                if percent_complete is None:
-                    percent_complete = listening_status.get("percent_complete")
-                time_remaining_seconds = listening_status.get(
-                    "time_remaining_seconds")
-            else:
-                time_remaining_seconds = None
+            percent_complete, time_remaining_seconds = Auditui._extract_progress_info(item)
 
             print(f"{idx}. {title}")
             if author_names:
