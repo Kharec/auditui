@@ -56,8 +56,6 @@ class Auditui:
             self.client = audible.Client(auth=self.auth)
         except Exception as e:
             print(f"Authentication failed: {e}")
-            import traceback
-            traceback.print_exc()
             sys.exit(1)
 
     def format_duration(self, value, unit='minutes', default_none=None):
