@@ -161,34 +161,41 @@ class Auditui:
         print("-" * 80)
         print(f"Total: {len(items)} books")
 
+    def _fetch_all_pages(self, response_groups):
+        all_items = []
+        page = 1
+        page_size = 50
+
+        while True:
+            library = self.client.get(
+                path="library",
+                num_results=page_size,
+                page=page,
+                response_groups=response_groups
+            )
+
+            items = library.get("items", [])
+
+            if not items:
+                break
+
+            all_items.extend(items)
+            print(f"Fetched page {page} ({len(items)} items)...", end="\r")
+
+            if len(items) < page_size:
+                break
+
+            page += 1
+
+        return all_items
+
     def list_library(self):
         try:
             print("\nFetching your library...")
 
-            all_items = []
-            page = 1
-            page_size = 50
-
-            while True:
-                library = self.client.get(
-                    path="library",
-                    num_results=page_size,
-                    page=page,
-                    response_groups="contributors,media,product_attrs,product_desc,product_details,rating"
-                )
-
-                items = library.get("items", [])
-
-                if not items:
-                    break
-
-                all_items.extend(items)
-                print(f"Fetched page {page} ({len(items)} items)...", end="\r")
-
-                if len(items) < page_size:
-                    break
-
-                page += 1
+            all_items = self._fetch_all_pages(
+                "contributors,media,product_attrs,product_desc,product_details,rating"
+            )
 
             print(f"\nFetched {len(all_items)} books total.\n")
 
@@ -205,30 +212,9 @@ class Auditui:
         try:
             print("\nFetching your library...")
 
-            all_items = []
-            page = 1
-            page_size = 50
-
-            while True:
-                library = self.client.get(
-                    path="library",
-                    num_results=page_size,
-                    page=page,
-                    response_groups="contributors,media,product_attrs,product_desc,product_details,rating,is_finished,listening_status,percent_complete"
-                )
-
-                items = library.get("items", [])
-
-                if not items:
-                    break
-
-                all_items.extend(items)
-                print(f"Fetched page {page} ({len(items)} items)...", end="\r")
-
-                if len(items) < page_size:
-                    break
-
-                page += 1
+            all_items = self._fetch_all_pages(
+                "contributors,media,product_attrs,product_desc,product_details,rating,is_finished,listening_status,percent_complete"
+            )
 
             print(f"\nFetched {len(all_items)} books total.\n")
 
