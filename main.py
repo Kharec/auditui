@@ -16,6 +16,7 @@ class Auditui:
 
     def __init__(self):
         self.auth = None
+        self.client = None
 
     def login_to_audible(self):
         auth_file = self.AUTH_PATH
@@ -25,6 +26,7 @@ class Auditui:
             try:
                 self.auth = audible.Authenticator.from_file(str(auth_file))
                 print("Loaded existing authentication.")
+                self.client = audible.Client(auth=self.auth)
                 return
             except Exception as e:
                 print(f"Failed to load existing auth: {e}")
@@ -51,6 +53,7 @@ class Auditui:
             auth_file.parent.mkdir(parents=True, exist_ok=True)
             self.auth.to_file(str(auth_file))
             print("Authentication successful! Credentials saved.")
+            self.client = audible.Client(auth=self.auth)
         except Exception as e:
             print(f"Authentication failed: {e}")
             import traceback
@@ -159,8 +162,6 @@ class Auditui:
         print(f"Total: {len(items)} books")
 
     def list_library(self):
-        client = audible.Client(auth=self.auth)
-
         try:
             print("\nFetching your library...")
 
@@ -169,7 +170,7 @@ class Auditui:
             page_size = 50
 
             while True:
-                library = client.get(
+                library = self.client.get(
                     path="library",
                     num_results=page_size,
                     page=page,
@@ -201,8 +202,6 @@ class Auditui:
             print(f"Error fetching library: {e}")
 
     def list_unfinished(self):
-        client = audible.Client(auth=self.auth)
-
         try:
             print("\nFetching your library...")
 
@@ -211,7 +210,7 @@ class Auditui:
             page_size = 50
 
             while True:
-                library = client.get(
+                library = self.client.get(
                     path="library",
                     num_results=page_size,
                     page=page,
