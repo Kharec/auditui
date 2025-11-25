@@ -1,2 +1,2 @@
-audible
-textual
+audible==0.8.2
+textual==6.6.0
