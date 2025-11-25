@@ -21,6 +21,7 @@ class AudituiApp(App):
     def on_mount(self) -> None:
         table = self.query_one(DataTable)
         table.add_columns("Title", "Author", "Length", "Progress")
+        self.title_column_key = list(table.columns.keys())[0]
 
         sample_books = [
             ("The Great Gatsby", "F. Scott Fitzgerald", "4h 30m", "100%"),
@@ -43,11 +44,11 @@ class AudituiApp(App):
 
     def action_sort(self) -> None:
         table = self.query_one(DataTable)
-        table.sort("Title")
+        table.sort(self.title_column_key)
 
     def action_reverse_sort(self) -> None:
         table = self.query_one(DataTable)
-        table.sort("Title", reverse=True)
+        table.sort(self.title_column_key, reverse=True)
 
 
 if __name__ == "__main__":
