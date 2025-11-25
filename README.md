@@ -2,26 +2,50 @@
 
 A terminal-based user interface (TUI) client for Audible, written in Python 3.
 
-Listen to your audiobooks or podcasts, browse your library, search for new titles, add them to your wishlist, and more.
+Listen to your audiobooks or podcasts, browse your library, and more.
 
-## What it does
+## What it does and where are we
 
-For now, it can:
+`main.py` offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default.
 
-- [x] list your entire library
+Now, I'm working on the "play" feature, which should allow you to play a book from the terminal by pressing `Enter` on a book in the list, and pause/unpause with `Space`.
+
+Then, the next thing to add is a progress bar at the bottom of the interface, to show the progress of the book while it's playing.
+
+It's still a work in progress, so expect bugs and missing features. By the way, the code is not yet organized as I'm currently experimenting.
+
+Also:
+
+- `tui-try.py` is where I test `textual` possibilities with fake data.
+- `audible-api-test.py` is where I test `audible` python bindings possibilities.
+
+## How to run
+
+Install the dependencies with:
+
+```bash
+$ virtualenv venv && source venv/bin/activate && pip install -r requirements.txt
+```
+
+Run the main application with:
+
+```bash
+$ python main.py
+```
+
+## Roadmap
+
+- [x] list your library
 - [x] list your unfinished books with progress information
-- [ ] play a book (start when it was last paused, mark the position when it's paused)
-- [ ] open a pdf if one's attached to the book
-- [ ] mark a book as finished
-- [ ] mark a book as unfinished
-- [ ] search for new titles
-- [ ] add a book to your wishlist
+- [ ] build a decent TUI interface using [Textual](https://textual.textualize.io/)
+- [ ] play/pause a book
+- [ ] print progress at the bottom of the app while a book is playing
+- [ ] add control to go to the previous/next chapter
+- [ ] add a controle to jump 30s earlier/later
+- [ ] mark a book as finished or unfinished
+- [ ] code cleanup / organization
 
-Once it'll do all of this (more or less), I'll think of a better code structure and the TUI interface.
-
-I'm still experimenting the `audible` library and its API.
-
-## Credentials
+## Auth / credentials
 
 Login is handled and credentials are stored in `~/.config/auditui/auth.json`.
 
