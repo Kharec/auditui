@@ -41,7 +41,7 @@ $ python main.py
 - [ ] play/pause a book
 - [ ] print progress at the bottom of the app while a book is playing
 - [ ] add control to go to the previous/next chapter
-- [ ] add a controle to jump 30s earlier/later
+- [ ] add a control to jump 30s earlier/later
 - [ ] mark a book as finished or unfinished
 - [ ] code cleanup / organization
 
