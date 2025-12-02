@@ -40,14 +40,13 @@ class Auditui:
 
         email = input("Email: ")
         password = getpass("Password: ")
-        marketplace = input(
-            "Marketplace locale (default: US): ").strip().upper() or "US"
+        marketplace = (
+            input("Marketplace locale (default: US): ").strip().upper() or "US"
+        )
 
         try:
             self.auth = audible.Authenticator.from_login(
-                username=email,
-                password=password,
-                locale=marketplace
+                username=email, password=password, locale=marketplace
             )
 
             auth_file.parent.mkdir(parents=True, exist_ok=True)
@@ -58,11 +57,11 @@ class Auditui:
             print(f"Authentication failed: {e}")
             sys.exit(1)
 
-    def format_duration(self, value, unit='minutes', default_none=None):
+    def format_duration(self, value, unit="minutes", default_none=None):
         if value is None or value <= 0:
             return default_none
 
-        if unit == 'seconds':
+        if unit == "seconds":
             total_minutes = int(value) // 60
         else:
             total_minutes = int(value)
@@ -78,9 +77,11 @@ class Auditui:
 
     def _extract_title(self, item):
         product = item.get("product", {})
-        return (product.get("title") or
-                item.get("title") or
-                product.get("asin", "Unknown Title"))
+        return (
+            product.get("title")
+            or item.get("title")
+            or product.get("asin", "Unknown Title")
+        )
 
     def _extract_authors(self, item):
         product = item.get("product", {})
@@ -96,7 +97,7 @@ class Auditui:
             "runtime_length",
             "vLength",
             "length",
-            "duration"
+            "duration",
         ]
 
         runtime = None
@@ -125,7 +126,8 @@ class Auditui:
         if isinstance(listening_status, dict):
             if percent_complete is None:
                 percent_complete = listening_status.get("percent_complete")
-            time_remaining_seconds = listening_status.get("time_remaining_seconds")
+            time_remaining_seconds = listening_status.get(
+                "time_remaining_seconds")
         else:
             time_remaining_seconds = None
 
@@ -143,8 +145,10 @@ class Auditui:
             author_names = self._extract_authors(item)
             minutes = self._extract_runtime_minutes(item)
             runtime_str = self.format_duration(
-                minutes, unit='minutes', default_none="Unknown length")
-            percent_complete, time_remaining_seconds = self._extract_progress_info(item)
+                minutes, unit="minutes", default_none="Unknown length"
+            )
+            percent_complete, time_remaining_seconds = self._extract_progress_info(
+                item)
 
             print(f"{idx}. {title}")
             if author_names:
@@ -157,7 +161,8 @@ class Auditui:
 
                 if time_remaining_seconds:
                     time_remaining_str = self.format_duration(
-                        time_remaining_seconds, unit='seconds')
+                        time_remaining_seconds, unit="seconds"
+                    )
                     if time_remaining_str:
                         print(f"   Time remaining: {time_remaining_str}")
 
@@ -176,7 +181,7 @@ class Auditui:
                 path="library",
                 num_results=page_size,
                 page=page,
-                response_groups=response_groups
+                response_groups=response_groups,
             )
 
             items = library.get("items", [])
@@ -232,14 +237,21 @@ class Auditui:
 
                 if isinstance(listening_status, dict):
                     is_finished_flag = is_finished_flag or listening_status.get(
-                        "is_finished", False)
-                    percent_complete = percent_complete if percent_complete is not None else listening_status.get(
-                        "percent_complete", 0)
+                        "is_finished", False
+                    )
+                    percent_complete = (
+                        percent_complete
+                        if percent_complete is not None
+                        else listening_status.get("percent_complete", 0)
+                    )
 
                 is_finished = False
                 if is_finished_flag is True:
                     is_finished = True
-                elif isinstance(percent_complete, (int, float)) and percent_complete >= 100:
+                elif (
+                    isinstance(percent_complete, (int, float))
+                    and percent_complete >= 100
+                ):
                     is_finished = True
 
                 if is_finished:
@@ -248,7 +260,9 @@ class Auditui:
                     unfinished_items.append(item)
 
             print(
-                f"Found {len(unfinished_items)} unfinished books (filtered out {finished_count} finished books).\n")
+                f"Found {len(unfinished_items)} unfinished books (filtered out {
+                    finished_count} finished books).\n"
+            )
 
             if not unfinished_items:
                 print("No unfinished books found.")
