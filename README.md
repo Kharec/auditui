@@ -12,12 +12,11 @@ Now, I'm working on the "play" feature, which should allow you to play a book fr
 
 Then, the next thing to add is a progress bar at the bottom of the interface, to show the progress of the book while it's playing.
 
-It's still a work in progress, so expect bugs and missing features. By the way, the code is not yet organized as I'm currently experimenting.
+It's still a work in progress, so :
 
-Also:
-
-- `tui-try.py` is where I test `textual` possibilities with fake data.
-- `audible-api-test.py` is where I test `audible` python bindings possibilities.
+- all the code is in `main.py`
+- expect bugs and missing features
+- the code is not yet organized as I'm currently experimenting
 
 ## How to run
 
