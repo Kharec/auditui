@@ -21,16 +21,14 @@ Also:
 
 ## How to run
 
-Install the dependencies with:
+This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
 
 ```bash
-$ virtualenv venv && source venv/bin/activate && pip install -r requirements.txt
-```
+# install dependencies (creates .venv)
+$ uv sync
 
-Run the main application with:
-
-```bash
-$ python main.py
+# run the TUI
+$ uv run main.py
 ```
 
 ## Roadmap
