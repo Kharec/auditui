@@ -38,8 +38,8 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] list your library
 - [x] list your unfinished books with progress information
 - [ ] play/pause a book
-- [ ] start a book from where it was left off on the last time it was played whichever the device
-- [ ] register where a book is left off when pausing or closing the app
+- [ ] resume playback of a book from the last position, regardless of which device was used previously
+- [ ] save the current playback position when pausing or exiting the app
 - [ ] print progress at the bottom of the app while a book is playing
 - [ ] add control to go to the previous/next chapter
 - [ ] add a control to jump 30s earlier/later
