@@ -14,7 +14,8 @@ Then, the next thing to add is a progress bar at the bottom of the interface, to
 
 It's still a work in progress, so :
 
-- all the code is in `main.py`
+- all the code is in `main.py` with exceptions:
+  - `player.py` is the test playground for the download and play functionality
 - expect bugs and missing features
 - the code is not yet organized as I'm currently experimenting
 
