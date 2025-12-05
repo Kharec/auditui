@@ -51,10 +51,10 @@ class AudibleStats:
 
 def main() -> None:
     """Main entry point."""
-    stats = AudibleStats()
-    stats.authenticate()
+    worker = AudibleStats()
+    worker.authenticate()
+    worker.print_stats()  # TBD
 
 
 if __name__ == "__main__":
     main()
-
