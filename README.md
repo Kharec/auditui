@@ -35,12 +35,14 @@ $ uv run main.py
 
 - [x] list your library
 - [x] list your unfinished books with progress information
-- [ ] build a decent TUI interface using [Textual](https://textual.textualize.io/)
 - [ ] play/pause a book
+- [ ] start a book from where it was left off on the last time it was played whichever the device
+- [ ] register where a book is left off when pausing or closing the app
 - [ ] print progress at the bottom of the app while a book is playing
 - [ ] add control to go to the previous/next chapter
 - [ ] add a control to jump 30s earlier/later
 - [ ] mark a book as finished or unfinished
+- [ ] build a decent TUI interface using [Textual](https://textual.textualize.io/)
 - [ ] code cleanup / organization
 
 ## Auth / credentials
