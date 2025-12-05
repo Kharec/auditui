@@ -336,18 +336,6 @@ def main() -> None:
                     "progress": player.extract_progress(item),
                 }
             )
-    if not asin:
-        unfinished = player.list_unfinished_tracks()
-        tracks = []
-        for item in unfinished:
-            tracks.append(
-                {
-                    "title": player.extract_title(item),
-                    "asin": player.extract_asin(item),
-                    "authors": player.extract_authors(item),
-                    "progress": player.extract_progress(item),
-                }
-            )
         print(json.dumps(tracks, indent=2))
         sys.exit(0)
 
