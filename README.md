@@ -31,6 +31,8 @@ $ uv sync
 $ uv run main.py
 ```
 
+Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) installed to play audio files.
+
 ## Roadmap
 
 - [x] list your library
