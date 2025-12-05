@@ -16,8 +16,9 @@ Look at the [roadmap](#roadmap) for more details.
 
 It's still a work in progress, so :
 
-- all the code is in `main.py` with exceptions:
+- currently, most code resides in `main.py`, except for some experimental files that aren't part of the final structure:
   - `player.py` is the test playground for the download and play functionality
+  - `stats.py` is the test playground for the stats functionality
 - expect bugs and missing features
 - the code is not yet organized as I'm currently experimenting
 
@@ -30,7 +31,7 @@ This project uses [uv](https://github.com/astral-sh/uv) for dependency managemen
 $ uv sync
 
 # run the TUI
-$ uv run main.py
+$ uv run main.py # or player.py or stats.py
 ```
 
 Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) installed to play audio files.
