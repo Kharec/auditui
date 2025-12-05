@@ -8,7 +8,7 @@ Listen to your audiobooks or podcasts, browse your library, and more.
 
 `main.py` offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default.
 
-Now, I'm working on the "play" feature, which should allow you to play a book from the terminal by pressing `Enter` on a book in the list, and pause/unpause with `Space`.
+Now, I'm working on the "play" feature, which should allow you to play/pause/unpause a book from the terminal by pressing `Space` on a book in the list.
 
 Then, the next thing to add is a progress bar at the bottom of the interface, to show the progress of the book while it's playing.
 
@@ -44,6 +44,12 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [ ] add control to go to the previous/next chapter
 - [ ] add a control to jump 30s earlier/later
 - [ ] mark a book as finished or unfinished
+- [ ] search the marketplace for books
+- [ ] add a book in your wishlist
+- [ ] get your listening stats from Audible
+
+All of this, and of course:
+
 - [ ] build a decent TUI interface using [Textual](https://textual.textualize.io/)
 - [ ] code cleanup / organization
 
