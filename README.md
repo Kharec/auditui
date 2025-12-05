@@ -12,6 +12,8 @@ Now, I'm working on the "play" feature, which should allow you to play/pause/unp
 
 Then, the next thing to add is a progress bar at the bottom of the interface, to show the progress of the book while it's playing.
 
+Look at the [roadmap](#roadmap) for more details.
+
 It's still a work in progress, so :
 
 - all the code is in `main.py` with exceptions:
