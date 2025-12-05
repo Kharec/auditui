@@ -53,7 +53,7 @@ def main() -> None:
     """Main entry point."""
     worker = AudibleStats()
     worker.authenticate()
-    worker.print_stats()  # TBD
+    print(worker.get_stats())  # TBD
 
 
 if __name__ == "__main__":
