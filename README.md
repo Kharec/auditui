@@ -6,18 +6,13 @@ Listen to your audiobooks or podcasts, browse your library, and more.
 
 ## What it does and where are we
 
-`main.py` offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default. 
+The project offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default.
 
-You can also play a book by pressing `Enter` on a book in the list. You can pause/resume the playback by pressing `Space`.
+You can also play a book by pressing `Enter` on a book in the list, and pause/resume the playback by pressing `Space`.
 
 Look at the [roadmap](#roadmap) for more details.
 
-It's still a work in progress, so :
-
-- currently, most code resides in `main.py`, except for some experimental files that aren't part of the final structure:
-  - `stats.py` is the test playground for the stats functionality
-- expect bugs and missing features
-- the code is not yet organized as I'm currently experimenting
+It's still a work in progress, so expect bugs and missing features.
 
 ## How to run
 
@@ -30,6 +25,8 @@ $ uv sync
 # run the TUI
 $ uv run main.py
 ```
+
+(`stats.py` is a playground for the stats functionality)
 
 Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
