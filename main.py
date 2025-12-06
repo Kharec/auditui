@@ -725,8 +725,6 @@ def authenticate():
 
 
 if __name__ == "__main__":
-    auth, client = authenticate()
     app = Auditui()
-    app.auth = auth
-    app.client = client
+    app.auth, app.client = authenticate()
     app.run()
