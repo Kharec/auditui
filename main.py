@@ -683,32 +683,34 @@ class Auditui(App):
         except Exception:
             return None
 
+    def authenticate(self) -> None:
+        """Authenticate with Audible and set auth and client objects."""
+        auth_path = Path.home() / ".config" / "auditui" / "auth.json"
+        auth_path.parent.mkdir(parents=True, exist_ok=True)
 
-def authenticate():
-    """Authenticate with Audible and return auth and client objects."""
-    auth_path = Path.home() / ".config" / "auditui" / "auth.json"
-    auth_path.parent.mkdir(parents=True, exist_ok=True)
+        if auth_path.exists():
+            try:
+                authenticator = audible.Authenticator.from_file(str(auth_path))
+                audible_client = audible.Client(auth=authenticator)
+                self.auth = authenticator
+                self.client = audible_client
+                return
+            except (OSError, ValueError, KeyError) as e:
+                print(f"Failed to load existing auth: {e}")
+                print("Please re-authenticate.")
 
-    if auth_path.exists():
-        try:
-            authenticator = audible.Authenticator.from_file(str(auth_path))
-            audible_client = audible.Client(auth=authenticator)
-            return authenticator, audible_client
-        except (OSError, ValueError, KeyError) as e:
-            print(f"Failed to load existing auth: {e}")
-            print("Please re-authenticate.")
+        print("Please authenticate with your Audible account.")
+        print("You will need to provide:")
+        print("  - Your Audible email/username")
+        print("  - Your password")
+        print("  - Your marketplace locale (e.g., 'US', 'UK', 'DE', 'FR')")
 
-    print("Please authenticate with your Audible account.")
-    print("You will need to provide:")
-    print("  - Your Audible email/username")
-    print("  - Your password")
-    print("  - Your marketplace locale (e.g., 'US', 'UK', 'DE', 'FR')")
+        email = input("\nEmail: ")
+        password = getpass("Password: ")
+        marketplace = (
+            input("Marketplace locale (default: US): ").strip().upper() or "US"
+        )
 
-    email = input("\nEmail: ")
-    password = getpass("Password: ")
-    marketplace = input("Marketplace locale (default: US): ").strip().upper() or "US"
-
-    try:
         authenticator = audible.Authenticator.from_login(
             username=email, password=password, locale=marketplace
         )
@@ -717,14 +719,11 @@ def authenticate():
         authenticator.to_file(str(auth_path))
         print("Authentication successful!")
         audible_client = audible.Client(auth=authenticator)
-        return authenticator, audible_client
-
-    except (OSError, ValueError, KeyError) as e:
-        print(f"Authentication failed: {e}")
-        sys.exit(1)
+        self.auth = authenticator
+        self.client = audible_client
 
 
 if __name__ == "__main__":
     app = Auditui()
-    app.auth, app.client = authenticate()
+    app.authenticate()
     app.run()
