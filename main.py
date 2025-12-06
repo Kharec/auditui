@@ -6,7 +6,6 @@ import re
 import shutil
 import signal
 import subprocess
-import sys
 from getpass import getpass
 from pathlib import Path
 
@@ -685,12 +684,11 @@ class Auditui(App):
 
     def authenticate(self) -> None:
         """Authenticate with Audible and set auth and client objects."""
-        auth_path = Path.home() / ".config" / "auditui" / "auth.json"
-        auth_path.parent.mkdir(parents=True, exist_ok=True)
+        self.AUTH_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-        if auth_path.exists():
+        if self.AUTH_PATH.exists():
             try:
-                authenticator = audible.Authenticator.from_file(str(auth_path))
+                authenticator = audible.Authenticator.from_file(str(self.AUTH_PATH))
                 audible_client = audible.Client(auth=authenticator)
                 self.auth = authenticator
                 self.client = audible_client
@@ -715,8 +713,8 @@ class Auditui(App):
             username=email, password=password, locale=marketplace
         )
 
-        auth_path.parent.mkdir(parents=True, exist_ok=True)
-        authenticator.to_file(str(auth_path))
+        self.AUTH_PATH.parent.mkdir(parents=True, exist_ok=True)
+        authenticator.to_file(str(self.AUTH_PATH))
         print("Authentication successful!")
         audible_client = audible.Client(auth=authenticator)
         self.auth = authenticator
