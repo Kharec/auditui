@@ -20,7 +20,7 @@ from textual.worker import get_current_worker
 from textual import work
 
 
-class AudituiApp(App):
+class Auditui(App):
     """Main application class for the Audible TUI app."""
 
     BINDINGS = [
@@ -48,7 +48,9 @@ class AudituiApp(App):
 
     AUTH_PATH = Path.home() / ".config" / "auditui" / "auth.json"
     CACHE_DIR = Path.home() / ".cache" / "auditui" / "books"
-    DOWNLOAD_URL = "https://cde-ta-g7g.amazon.com/FionaCDEServiceEngine/FSDownloadContent"
+    DOWNLOAD_URL = (
+        "https://cde-ta-g7g.amazon.com/FionaCDEServiceEngine/FSDownloadContent"
+    )
     DEFAULT_CODEC = "LC_128_44100_stereo"
     MIN_FILE_SIZE = 1024 * 1024
 
@@ -144,7 +146,7 @@ class AudituiApp(App):
                 path="library",
                 num_results=page_size,
                 page=page,
-                response_groups=response_groups
+                response_groups=response_groups,
             )
 
             items = library.get("items", [])
@@ -153,8 +155,7 @@ class AudituiApp(App):
 
             all_items.extend(items)
             self.call_from_thread(
-                self.update_status,
-                f"Fetched page {page} ({len(items)} items)..."
+                self.update_status, f"Fetched page {page} ({len(items)} items)..."
             )
 
             if len(items) < page_size:
@@ -178,9 +179,9 @@ class AudituiApp(App):
         """Extract title from library item."""
         product = item.get("product", {})
         return (
-            product.get("title") or
-            item.get("title") or
-            product.get("asin", "Unknown Title")
+            product.get("title")
+            or item.get("title")
+            or product.get("asin", "Unknown Title")
         )
 
     def _extract_authors(self, item: dict) -> str:
@@ -190,9 +191,7 @@ class AudituiApp(App):
         if not authors and "authors" in item:
             authors = item.get("authors", [])
 
-        author_names = [
-            a.get("name", "") for a in authors if isinstance(a, dict)
-        ]
+        author_names = [a.get("name", "") for a in authors if isinstance(a, dict)]
         return ", ".join(author_names) or "Unknown"
 
     def _extract_runtime_minutes(self, item: dict) -> int | None:
@@ -203,7 +202,7 @@ class AudituiApp(App):
             "runtime_length",
             "vLength",
             "length",
-            "duration"
+            "duration",
         ]
 
         runtime = None
@@ -244,7 +243,9 @@ class AudituiApp(App):
         listening_status = item.get("listening_status")
 
         if isinstance(listening_status, dict):
-            is_finished_flag = is_finished_flag or listening_status.get("is_finished", False)
+            is_finished_flag = is_finished_flag or listening_status.get(
+                "is_finished", False
+            )
             if percent_complete is None:
                 percent_complete = listening_status.get("percent_complete", 0)
 
@@ -252,12 +253,14 @@ class AudituiApp(App):
             isinstance(percent_complete, (int, float)) and percent_complete >= 100
         )
 
-    def format_duration(self, value: int | None, unit: str = 'minutes', default_none: str | None = None) -> str | None:
+    def format_duration(
+        self, value: int | None, unit: str = "minutes", default_none: str | None = None
+    ) -> str | None:
         """Format duration value into human-readable string."""
         if value is None or value <= 0:
             return default_none
 
-        if unit == 'seconds':
+        if unit == "seconds":
             total_minutes = int(value) // 60
         else:
             total_minutes = int(value)
@@ -285,7 +288,7 @@ class AudituiApp(App):
             author_names = self._extract_authors(item)
             minutes = self._extract_runtime_minutes(item)
             runtime_str = self.format_duration(
-                minutes, unit='minutes', default_none="Unknown length"
+                minutes, unit="minutes", default_none="Unknown length"
             )
             percent_complete = self._extract_progress_info(item)
 
@@ -298,7 +301,7 @@ class AudituiApp(App):
                 author_names or "Unknown",
                 runtime_str or "Unknown",
                 progress_str,
-                key=title
+                key=title,
             )
 
         self.current_items = items
@@ -564,8 +567,7 @@ class AudituiApp(App):
             return
 
         self.call_from_thread(
-            self.update_status,
-            f"Starting playback of {local_path.name}..."
+            self.update_status, f"Starting playback of {local_path.name}..."
         )
         self.call_from_thread(self._start_playback, local_path, activation_hex)
 
@@ -601,7 +603,7 @@ class AudituiApp(App):
                 url=self.DOWNLOAD_URL,
                 params=params,
                 follow_redirects=False,
-                auth=self.auth
+                auth=self.auth,
             )
             response.raise_for_status()
 
@@ -631,7 +633,7 @@ class AudituiApp(App):
                             percent = (downloaded / total_size) * 100
                             self.call_from_thread(
                                 self.update_status,
-                                f"Downloading: {percent:.1f}% ({downloaded}/{total_size} bytes)"
+                                f"Downloading: {percent:.1f}% ({downloaded}/{total_size} bytes)",
                             )
 
             return dest_path
@@ -646,14 +648,12 @@ class AudituiApp(App):
 
         if local_path.exists() and local_path.stat().st_size >= self.MIN_FILE_SIZE:
             self.call_from_thread(
-                self.update_status,
-                f"Using cached file: {local_path.name}"
+                self.update_status, f"Using cached file: {local_path.name}"
             )
             return local_path
 
         self.call_from_thread(
-            self.update_status,
-            f"Downloading to {local_path.name}..."
+            self.update_status, f"Downloading to {local_path.name}..."
         )
 
         dl_link = self._get_download_link(asin)
@@ -667,8 +667,7 @@ class AudituiApp(App):
 
         if not local_path.exists() or local_path.stat().st_size < self.MIN_FILE_SIZE:
             self.call_from_thread(
-                self.update_status,
-                "Download failed or file too small"
+                self.update_status, "Download failed or file too small"
             )
             return None
 
@@ -707,15 +706,11 @@ def authenticate():
 
     email = input("\nEmail: ")
     password = getpass("Password: ")
-    marketplace = input(
-        "Marketplace locale (default: US): "
-    ).strip().upper() or "US"
+    marketplace = input("Marketplace locale (default: US): ").strip().upper() or "US"
 
     try:
         authenticator = audible.Authenticator.from_login(
-            username=email,
-            password=password,
-            locale=marketplace
+            username=email, password=password, locale=marketplace
         )
 
         auth_path.parent.mkdir(parents=True, exist_ok=True)
@@ -731,7 +726,7 @@ def authenticate():
 
 if __name__ == "__main__":
     auth, client = authenticate()
-    app = AudituiApp()
+    app = Auditui()
     app.auth = auth
     app.client = client
     app.run()
