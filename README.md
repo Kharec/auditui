@@ -6,18 +6,15 @@ Listen to your audiobooks or podcasts, browse your library, and more.
 
 ## What it does and where are we
 
-`main.py` offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default.
+`main.py` offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default. 
 
-Now, I'm working on the "play" feature, which should allow you to play/pause/unpause a book from the terminal by pressing `Space` on a book in the list.
-
-Then, the next thing to add is a progress bar at the bottom of the interface, to show the progress of the book while it's playing.
+You can also play a book by pressing `Enter` on a book in the list. You can pause/resume the playback by pressing `Space`.
 
 Look at the [roadmap](#roadmap) for more details.
 
 It's still a work in progress, so :
 
 - currently, most code resides in `main.py`, except for some experimental files that aren't part of the final structure:
-  - `player.py` is the test playground for the download and play functionality
   - `stats.py` is the test playground for the stats functionality
 - expect bugs and missing features
 - the code is not yet organized as I'm currently experimenting
@@ -31,7 +28,7 @@ This project uses [uv](https://github.com/astral-sh/uv) for dependency managemen
 $ uv sync
 
 # run the TUI
-$ uv run main.py # or player.py or stats.py
+$ uv run main.py
 ```
 
 Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) installed to play audio files.
@@ -40,7 +37,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 
 - [x] list your library
 - [x] list your unfinished books with progress information
-- [ ] play/pause a book
+- [x] play/pause a book
 - [ ] resume playback of a book from the last position, regardless of which device was used previously
 - [ ] save the current playback position when pausing or exiting the app
 - [ ] print progress at the bottom of the app while a book is playing
