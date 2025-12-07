@@ -130,6 +130,8 @@ class Auditui(App):
         for item in items:
             title = self.library_client.extract_title(item)
             author_names = self.library_client.extract_authors(item)
+            if author_names and len(author_names) > 40:
+                author_names = author_names[:37] + "..."
             minutes = self.library_client.extract_runtime_minutes(item)
             runtime_str = self.library_client.format_duration(
                 minutes, unit="minutes", default_none="Unknown length"
