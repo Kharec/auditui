@@ -9,7 +9,9 @@ import audible
 from .constants import AUTH_PATH
 
 
-def authenticate(auth_path: Path = AUTH_PATH) -> Tuple[audible.Authenticator, audible.Client]:
+def authenticate(
+    auth_path: Path = AUTH_PATH,
+) -> Tuple[audible.Authenticator, audible.Client]:
     """Authenticate with Audible and return authenticator and client."""
     auth_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -23,14 +25,11 @@ def authenticate(auth_path: Path = AUTH_PATH) -> Tuple[audible.Authenticator, au
             print("Please re-authenticate.")
 
     print("Please authenticate with your Audible account.")
-    print("You will need to provide:")
-    print("  - Your Audible email/username")
-    print("  - Your password")
-    print("  - Your marketplace locale (e.g., 'US', 'UK', 'DE', 'FR')")
 
     email = input("\nEmail: ")
     password = getpass("Password: ")
-    marketplace = input("Marketplace locale (default: US): ").strip().upper() or "US"
+    marketplace = input(
+        "Marketplace locale (default: US): ").strip().upper() or "US"
 
     authenticator = audible.Authenticator.from_login(
         username=email, password=password, locale=marketplace
@@ -41,4 +40,3 @@ def authenticate(auth_path: Path = AUTH_PATH) -> Tuple[audible.Authenticator, au
     print("Authentication successful!")
     audible_client = audible.Client(auth=authenticator)
     return authenticator, audible_client
-
