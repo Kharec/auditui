@@ -134,23 +134,20 @@ class LibraryClient:
     def format_duration(
         value: int | None, unit: str = "minutes", default_none: str | None = None
     ) -> str | None:
-        """Format duration value into human-readable string."""
+        """Format duration value into a human-readable string."""
         if value is None or value <= 0:
             return default_none
 
+        total_minutes = int(value)
         if unit == "seconds":
-            total_minutes = int(value) // 60
-        else:
-            total_minutes = int(value)
+            total_minutes //= 60
 
-        if total_minutes < 60:
-            return f"{total_minutes} minute{'s' if total_minutes != 1 else ''}"
+        hours, minutes = divmod(total_minutes, 60)
 
-        hours = total_minutes // 60
-        mins = total_minutes % 60
-        if mins == 0:
-            return f"{hours} hour{'s' if hours != 1 else ''}"
-        return (
-            f"{hours} hour{'s' if hours != 1 else ''} "
-            f"{mins} minute{'s' if mins != 1 else ''}"
-        )
+        parts = []
+        if hours:
+            parts.append(f"{hours} hour{'s' if hours != 1 else ''}")
+        if minutes:
+            parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
+
+        return " ".join(parts) if parts else default_none
