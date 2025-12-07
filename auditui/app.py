@@ -1,7 +1,5 @@
 """Textual application for the Audible TUI."""
 
-from pathlib import Path
-
 from textual import work
 from textual.app import App, ComposeResult
 from textual.events import Key
@@ -232,33 +230,22 @@ class Auditui(App):
             return
 
         selected_item = self.current_items[cursor_row]
-        asin = self.library_client.extract_asin(selected_item) if self.library_client else None
+        asin = (
+            self.library_client.extract_asin(selected_item)
+            if self.library_client
+            else None
+        )
 
         if not asin:
             self.update_status("Could not get ASIN for selected book")
             return
 
-        if self.playback.is_playing:
-            self.playback.stop()
-
-        self.playback.current_asin = asin
         self._start_playback_async(asin)
 
     def action_toggle_playback(self) -> None:
         """Toggle pause/resume state."""
-        if not self.playback.is_playing:
+        if not self.playback.toggle_playback():
             self.update_status("No playback active. Press Enter to play a book.")
-            return
-
-        if not self.playback.is_alive():
-            self.playback.stop()
-            self.update_status("Playback has ended")
-            return
-
-        if self.playback.is_paused:
-            self.playback.resume()
-        else:
-            self.playback.pause()
 
     def _check_playback_status(self) -> None:
         """Check if playback process has finished and update state accordingly."""
@@ -269,24 +256,8 @@ class Auditui(App):
     @work(exclusive=True, thread=True)
     def _start_playback_async(self, asin: str) -> None:
         """Start playback asynchronously."""
-        if not self.download_manager:
-            self.call_from_thread(self.update_status, "Could not download file")
-            return
-
-        self.call_from_thread(self.update_status, "Preparing playback...")
-
-        local_path = self.download_manager.get_or_download(asin, self._thread_status_update)
-        if not local_path:
-            self.call_from_thread(self.update_status, "Could not download file")
-            return
-
-        self.call_from_thread(self.update_status, "Getting activation bytes...")
-        activation_hex = self.download_manager.get_activation_bytes()
-        if not activation_hex:
-            self.call_from_thread(self.update_status, "Failed to get activation bytes")
-            return
-
-        self.call_from_thread(
-            self.update_status, f"Starting playback of {local_path.name}..."
+        self.playback.prepare_and_start(
+            self.download_manager,
+            asin,
+            self._thread_status_update,
         )
-        self.call_from_thread(self.playback.start, local_path, activation_hex)
