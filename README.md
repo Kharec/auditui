@@ -8,6 +8,8 @@ Listen to your audiobooks or podcasts, browse your library, and more.
 
 The project offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default.
 
+Currently, the only available theme is Catppuccin Mocha, following their [style guide](https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md), as it's my preferred theme across most of my tools.
+
 You can also play a book by pressing `Enter` on a book in the list, and pause/resume the playback by pressing `Space`.
 
 Look at the [roadmap](#roadmap) for more details.
@@ -35,6 +37,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] list your library
 - [x] list your unfinished books with progress information
 - [x] play/pause a book
+- [x] catppuccin mocha theme
 - [ ] resume playback of a book from the last position, regardless of which device was used previously
 - [ ] save the current playback position when pausing or exiting the app
 - [ ] print progress at the bottom of the app while a book is playing
@@ -44,6 +47,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [ ] search the marketplace for books
 - [ ] add a book in your wishlist
 - [ ] get your listening stats from Audible
+- [ ] add multiple themes and theme selector
 
 All of this, and of course:
 
