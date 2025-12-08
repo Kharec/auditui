@@ -16,7 +16,6 @@ from .library import LibraryClient
 from .playback import PlaybackController
 
 if TYPE_CHECKING:
-    from audible import Authenticator, Client
     from textual.widgets._data_table import ColumnKey
 
 
