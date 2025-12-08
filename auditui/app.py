@@ -1,5 +1,9 @@
 """Textual application for the Audible TUI."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from textual import work
 from textual.app import App, ComposeResult
 from textual.events import Key
@@ -10,6 +14,10 @@ from .constants import TABLE_COLUMNS, TABLE_CSS
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
+
+if TYPE_CHECKING:
+    from audible import Authenticator, Client
+    from textual.widgets._data_table import ColumnKey
 
 
 class Auditui(App):
@@ -43,14 +51,14 @@ class Auditui(App):
         self.current_items: list = []
         self.show_all_mode = False
         self.progress_sort_reverse = False
-        self.title_column_key = None
-        self.progress_column_key = None
+        self.title_column_key: ColumnKey | None = None
+        self.progress_column_key: ColumnKey | None = None
         self.progress_column_index = 3
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static("Loading...", id="status")
-        table = DataTable()
+        table: DataTable = DataTable()
         table.zebra_stripes = True
         table.cursor_type = "row"
         yield table
@@ -68,7 +76,8 @@ class Auditui(App):
             self.update_status("Fetching library...")
             self.fetch_library()
         else:
-            self.update_status("Not authenticated. Please restart and authenticate.")
+            self.update_status(
+                "Not authenticated. Please restart and authenticate.")
 
         self.set_interval(1.0, self._check_playback_status)
 
@@ -103,7 +112,8 @@ class Auditui(App):
             return
 
         try:
-            all_items = self.library_client.fetch_all_items(self._thread_status_update)
+            all_items = self.library_client.fetch_all_items(
+                self._thread_status_update)
             self.call_from_thread(self.on_library_loaded, all_items)
         except (OSError, ValueError, KeyError) as exc:
             self.call_from_thread(self.on_library_error, str(exc))
@@ -181,13 +191,13 @@ class Auditui(App):
     def action_sort(self) -> None:
         """Sort table by title in ascending order."""
         table = self.query_one(DataTable)
-        if table.row_count > 0:
+        if table.row_count > 0 and self.title_column_key:
             table.sort(self.title_column_key)
 
     def action_reverse_sort(self) -> None:
         """Sort table by title in descending order."""
         table = self.query_one(DataTable)
-        if table.row_count > 0:
+        if table.row_count > 0 and self.title_column_key:
             table.sort(self.title_column_key, reverse=True)
 
     def action_sort_by_progress(self) -> None:
@@ -218,7 +228,8 @@ class Auditui(App):
     def action_play_selected(self) -> None:
         """Start playing the selected book."""
         if not self.download_manager:
-            self.update_status("Not authenticated. Please restart and authenticate.")
+            self.update_status(
+                "Not authenticated. Please restart and authenticate.")
             return
 
         table = self.query_one(DataTable)
@@ -247,7 +258,8 @@ class Auditui(App):
     def action_toggle_playback(self) -> None:
         """Toggle pause/resume state."""
         if not self.playback.toggle_playback():
-            self.update_status("No playback active. Press Enter to play a book.")
+            self.update_status(
+                "No playback active. Press Enter to play a book.")
 
     def _check_playback_status(self) -> None:
         """Check if playback process has finished and update state accordingly."""
@@ -258,6 +270,8 @@ class Auditui(App):
     @work(exclusive=True, thread=True)
     def _start_playback_async(self, asin: str) -> None:
         """Start playback asynchronously."""
+        if not self.download_manager:
+            return
         self.playback.prepare_and_start(
             self.download_manager,
             asin,
