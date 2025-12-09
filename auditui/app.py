@@ -31,6 +31,8 @@ class Auditui(App):
         ("u", "show_unfinished", "Show unfinished"),
         ("enter", "play_selected", "Play selected book"),
         ("space", "toggle_playback", "Pause/Resume"),
+        ("left", "seek_backward", "Seek -30s"),
+        ("right", "seek_forward", "Seek +30s"),
         ("q", "quit", "Quit application"),
     ]
 
@@ -77,8 +79,7 @@ class Auditui(App):
             self.update_status("Fetching library...")
             self.fetch_library()
         else:
-            self.update_status(
-                "Not authenticated. Please restart and authenticate.")
+            self.update_status("Not authenticated. Please restart and authenticate.")
 
         self.set_interval(1.0, self._check_playback_status)
         self.set_interval(0.5, self._update_progress)
@@ -96,6 +97,12 @@ class Auditui(App):
             elif event.key == "space":
                 event.prevent_default()
                 self.action_toggle_playback()
+            elif event.key == "left" and self.playback.is_playing:
+                event.prevent_default()
+                self.action_seek_backward()
+            elif event.key == "right" and self.playback.is_playing:
+                event.prevent_default()
+                self.action_seek_forward()
 
     def update_status(self, message: str) -> None:
         """Update the status message in the UI."""
@@ -227,8 +234,7 @@ class Auditui(App):
     def action_play_selected(self) -> None:
         """Start playing the selected book."""
         if not self.download_manager:
-            self.update_status(
-                "Not authenticated. Please restart and authenticate.")
+            self.update_status("Not authenticated. Please restart and authenticate.")
             return
 
         table = self.query_one(DataTable)
@@ -242,8 +248,7 @@ class Auditui(App):
             return
 
         selected_item = self.current_items[cursor_row]
-        asin = self.library_client.extract_asin(
-            selected_item) if self.library_client else None
+        asin = self.library_client.extract_asin(selected_item) if self.library_client else None
 
         if not asin:
             self.update_status("Could not get ASIN for selected book")
@@ -254,8 +259,21 @@ class Auditui(App):
     def action_toggle_playback(self) -> None:
         """Toggle pause/resume state."""
         if not self.playback.toggle_playback():
-            self.update_status(
-                "No playback active. Press Enter to play a book.")
+            self._no_playback_message()
+
+    def action_seek_forward(self) -> None:
+        """Seek forward 30 seconds."""
+        if not self.playback.seek_forward(30.0):
+            self._no_playback_message()
+
+    def action_seek_backward(self) -> None:
+        """Seek backward 30 seconds."""
+        if not self.playback.seek_backward(30.0):
+            self._no_playback_message()
+
+    def _no_playback_message(self) -> None:
+        """Show message when no playback is active."""
+        self.update_status("No playback active. Press Enter to play a book.")
 
     def _check_playback_status(self) -> None:
         """Check if playback process has finished and update state accordingly."""
@@ -266,8 +284,12 @@ class Auditui(App):
 
     def _update_progress(self) -> None:
         """Update the progress bar and info during playback."""
+        if not self.playback.is_playing:
+            self._hide_progress()
+            return
+
         progress_data = self.playback.get_current_progress()
-        if not progress_data or not self.playback.is_playing:
+        if not progress_data:
             self._hide_progress()
             return
 
@@ -279,13 +301,11 @@ class Auditui(App):
         progress_info = self.query_one("#progress_info", Static)
         progress_bar = self.query_one("#progress_bar", ProgressBar)
 
-        progress_percent = min(
-            100.0, (chapter_elapsed / chapter_total) * 100.0)
+        progress_percent = min(100.0, max(0.0, (chapter_elapsed / chapter_total) * 100.0))
         progress_bar.update(progress=progress_percent)
         chapter_elapsed_str = self._format_time(chapter_elapsed)
         chapter_total_str = self._format_time(chapter_total)
-        progress_info.update(
-            f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
+        progress_info.update(f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
         progress_info.display = True
         progress_bar.display = True
 
