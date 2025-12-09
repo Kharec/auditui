@@ -31,12 +31,15 @@ class PlaybackController:
         self.pause_start_time: float | None = None
         self.total_duration: float | None = None
         self.chapters: list[dict] = []
+        self.seek_offset: float = 0.0
+        self.activation_hex: str | None = None
 
     def start(
         self,
         path: Path,
         activation_hex: str | None = None,
         status_callback: StatusCallback | None = None,
+        start_position: float = 0.0,
     ) -> bool:
         """Start playing a local file using ffplay."""
         notify = status_callback or self.notify
@@ -48,9 +51,14 @@ class PlaybackController:
         if self.playback_process is not None:
             self.stop()
 
+        self.activation_hex = activation_hex
+        self.seek_offset = start_position
+
         cmd = ["ffplay", "-nodisp", "-autoexit"]
         if activation_hex:
             cmd.extend(["-activation_bytes", activation_hex])
+        if start_position > 0:
+            cmd.extend(["-ss", str(start_position)])
         cmd.append(str(path))
 
         try:
@@ -58,11 +66,15 @@ class PlaybackController:
                 cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
             )
 
+            time.sleep(0.2)
             if self.playback_process.poll() is not None:
                 return_code = self.playback_process.returncode
-                notify(
-                    f"Playback process exited immediately (code: {return_code})"
-                )
+                if return_code == 0 and start_position > 0 and self.total_duration:
+                    if start_position >= self.total_duration - 5:
+                        notify("Reached end of file")
+                        self._reset_state()
+                        return False
+                notify(f"Playback process exited immediately (code: {return_code})")
                 self.playback_process = None
                 return False
 
@@ -146,6 +158,8 @@ class PlaybackController:
         self.pause_start_time = None
         self.total_duration = None
         self.chapters = []
+        self.seek_offset = 0.0
+        self.activation_hex = None
 
     def _validate_playback_state(self, require_paused: bool) -> bool:
         """Validate playback state before pause/resume operations."""
@@ -235,6 +249,95 @@ class PlaybackController:
             self.pause()
         return True
 
+    def _get_current_elapsed(self) -> float:
+        """Calculate current elapsed playback time."""
+        if self.playback_start_time is None:
+            return 0.0
+
+        current_time = time.time()
+        if self.is_paused and self.pause_start_time is not None:
+            return (self.pause_start_time - self.playback_start_time) - self.paused_duration
+
+        if self.pause_start_time is not None:
+            self.paused_duration += current_time - self.pause_start_time
+            self.pause_start_time = None
+
+        return max(0.0, (current_time - self.playback_start_time) - self.paused_duration)
+
+    def _stop_process(self) -> None:
+        """Stop the playback process without resetting state."""
+        if not self.playback_process:
+            return
+
+        try:
+            if self.playback_process.poll() is None:
+                self.playback_process.terminate()
+                try:
+                    self.playback_process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    self.playback_process.kill()
+                    self.playback_process.wait()
+        except (ProcessLookupError, ValueError):
+            pass
+
+        self.playback_process = None
+        self.is_playing = False
+        self.is_paused = False
+        self.playback_start_time = None
+        self.paused_duration = 0.0
+        self.pause_start_time = None
+
+    def _seek(self, seconds: float, direction: str) -> bool:
+        """Seek forward or backward by specified seconds."""
+        if not self.is_playing or not self.current_file_path:
+            return False
+
+        elapsed = self._get_current_elapsed()
+        current_total_position = self.seek_offset + elapsed
+
+        if direction == "forward":
+            new_position = current_total_position + seconds
+            if self.total_duration:
+                if new_position >= self.total_duration - 2:
+                    self.notify("Already at end of file")
+                    return False
+                new_position = min(new_position, self.total_duration - 2)
+            message = f"Skipped forward {int(seconds)}s"
+        else:
+            new_position = max(0.0, current_total_position - seconds)
+            message = f"Skipped backward {int(seconds)}s"
+
+        was_paused = self.is_paused
+        saved_state = {
+            "file_path": self.current_file_path,
+            "asin": self.current_asin,
+            "activation": self.activation_hex,
+            "duration": self.total_duration,
+            "chapters": self.chapters.copy(),
+        }
+
+        self._stop_process()
+        time.sleep(0.2)
+
+        if self.start(saved_state["file_path"], saved_state["activation"], self.notify, new_position):
+            self.current_asin = saved_state["asin"]
+            self.total_duration = saved_state["duration"]
+            self.chapters = saved_state["chapters"]
+            if was_paused:
+                time.sleep(0.3)
+                self.pause()
+            self.notify(message)
+            return True
+        return False
+
+    def seek_forward(self, seconds: float = 30.0) -> bool:
+        """Seek forward by specified seconds. Returns True if action was taken."""
+        return self._seek(seconds, "forward")
+
+    def seek_backward(self, seconds: float = 30.0) -> bool:
+        """Seek backward by specified seconds. Returns True if action was taken."""
+        return self._seek(seconds, "backward")
+
     def _load_media_info(self, path: Path, activation_hex: str | None) -> None:
         """Load media information including duration and chapters using ffprobe."""
         if not shutil.which("ffprobe"):
@@ -275,19 +378,9 @@ class PlaybackController:
         if not self.is_playing or self.playback_start_time is None:
             return None
 
-        current_time = time.time()
-        if self.is_paused and self.pause_start_time is not None:
-            elapsed = (self.pause_start_time -
-                       self.playback_start_time) - self.paused_duration
-        else:
-            if self.pause_start_time is not None:
-                self.paused_duration += current_time - self.pause_start_time
-                self.pause_start_time = None
-            elapsed = max(
-                0.0, (current_time - self.playback_start_time) - self.paused_duration)
-
-        chapter_name, chapter_elapsed, chapter_total = self._get_current_chapter(
-            elapsed)
+        elapsed = self._get_current_elapsed()
+        total_elapsed = self.seek_offset + elapsed
+        chapter_name, chapter_elapsed, chapter_total = self._get_current_chapter(total_elapsed)
         return (chapter_name, chapter_elapsed, chapter_total)
 
     def _get_current_chapter(self, elapsed: float) -> tuple[str, float, float]:
