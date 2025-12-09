@@ -38,9 +38,8 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] list your unfinished books with progress information
 - [x] play/pause a book
 - [x] catppuccin mocha theme
-- [ ] resume playback of a book from the last position, regardless of which device was used previously
-- [ ] save the current playback position when pausing or exiting the app
-- [ ] print progress at the bottom of the app while a book is playing
+- [ ] print chapter and progress in the footer of the app while a book is playing
+- [ ] save/resume playback of a book from the last position, regardless of which device was used previously
 - [ ] add control to go to the previous/next chapter
 - [ ] add a control to jump 30s earlier/later
 - [ ] mark a book as finished or unfinished
