@@ -24,6 +24,49 @@ Header {
 Footer {
     background: #181825;
     color: #bac2de;
+    height: 1;
+    padding: 0 1;
+    scrollbar-size: 0 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+Footer > HorizontalGroup > KeyGroup,
+Footer > HorizontalGroup > KeyGroup.-compact {
+    margin: 0;
+    padding: 0;
+    background: #181825;
+}
+
+FooterKey,
+FooterKey.-grouped,
+Footer.-compact FooterKey {
+    background: #181825;
+    padding: 0;
+    margin: 0 2 0 0;
+}
+
+FooterKey .footer-key--key {
+    color: #f9e2af;
+    background: #181825;
+    text-style: bold;
+    padding: 0 1 0 0;
+}
+
+FooterKey .footer-key--description {
+    color: #cdd6f4;
+    background: #181825;
+    padding: 0;
+}
+
+FooterKey:hover {
+    background: #313244;
+    color: #cdd6f4;
+}
+
+FooterKey:hover .footer-key--key,
+FooterKey:hover .footer-key--description {
+    background: #313244;
 }
 
 DataTable {
@@ -64,7 +107,29 @@ Static {
 }
 
 Static#status {
-    background: #181825;
     color: #bac2de;
+}
+
+Static#progress_info {
+    color: #89b4fa;
+    text-style: bold;
+    margin: 0;
+    padding: 0;
+}
+
+ProgressBar#progress_bar {
+    height: 1;
+    background: #181825;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+ProgressBar > .progress-bar--bar {
+    background: #89b4fa;
+}
+
+ProgressBar > .progress-bar--track {
+    background: #45475a;
 }
 """

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from textual import work
 from textual.app import App, ComposeResult
 from textual.events import Key
-from textual.widgets import DataTable, Footer, Header, Static
+from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
 from textual.worker import get_current_worker
 
 from .constants import TABLE_COLUMNS, TABLE_CSS
@@ -46,8 +46,8 @@ class Auditui(App):
         )
         self.playback = PlaybackController(self.update_status)
 
-        self.all_items: list = []
-        self.current_items: list = []
+        self.all_items: list[dict] = []
+        self.current_items: list[dict] = []
         self.show_all_mode = False
         self.progress_sort_reverse = False
         self.title_column_key: ColumnKey | None = None
@@ -61,6 +61,8 @@ class Auditui(App):
         table.zebra_stripes = True
         table.cursor_type = "row"
         yield table
+        yield Static("", id="progress_info")
+        yield ProgressBar(id="progress_bar", show_eta=False, show_percentage=False, total=100)
         yield Footer()
 
     def on_mount(self) -> None:
@@ -79,6 +81,7 @@ class Auditui(App):
                 "Not authenticated. Please restart and authenticate.")
 
         self.set_interval(1.0, self._check_playback_status)
+        self.set_interval(0.5, self._update_progress)
 
     def on_unmount(self) -> None:
         """Clean up on app exit."""
@@ -140,16 +143,13 @@ class Auditui(App):
             title = self.library_client.extract_title(item)
             author_names = self.library_client.extract_authors(item)
             if author_names and len(author_names) > 40:
-                author_names = author_names[:37] + "..."
+                author_names = f"{author_names[:37]}..."
             minutes = self.library_client.extract_runtime_minutes(item)
             runtime_str = self.library_client.format_duration(
                 minutes, unit="minutes", default_none="Unknown length"
             )
             percent_complete = self.library_client.extract_progress_info(item)
-
-            progress_str = "0%"
-            if percent_complete is not None and percent_complete > 0:
-                progress_str = f"{percent_complete:.1f}%"
+            progress_str = f"{percent_complete:.1f}%" if percent_complete and percent_complete > 0 else "0%"
 
             table.add_row(
                 title,
@@ -217,11 +217,11 @@ class Auditui(App):
             table.sort(key=progress_key, reverse=self.progress_sort_reverse)
 
     def action_show_all(self) -> None:
-        """Action handler to show all books."""
+        """Show all books."""
         self.show_all()
 
     def action_show_unfinished(self) -> None:
-        """Action handler to show unfinished books."""
+        """Show unfinished books."""
         self.show_unfinished()
 
     def action_play_selected(self) -> None:
@@ -242,11 +242,8 @@ class Auditui(App):
             return
 
         selected_item = self.current_items[cursor_row]
-        asin = (
-            self.library_client.extract_asin(selected_item)
-            if self.library_client
-            else None
-        )
+        asin = self.library_client.extract_asin(
+            selected_item) if self.library_client else None
 
         if not asin:
             self.update_status("Could not get ASIN for selected book")
@@ -265,6 +262,50 @@ class Auditui(App):
         message = self.playback.check_status()
         if message:
             self.update_status(message)
+            self._hide_progress()
+
+    def _update_progress(self) -> None:
+        """Update the progress bar and info during playback."""
+        progress_data = self.playback.get_current_progress()
+        if not progress_data or not self.playback.is_playing:
+            self._hide_progress()
+            return
+
+        chapter_name, chapter_elapsed, chapter_total = progress_data
+        if chapter_total <= 0:
+            self._hide_progress()
+            return
+
+        progress_info = self.query_one("#progress_info", Static)
+        progress_bar = self.query_one("#progress_bar", ProgressBar)
+
+        progress_percent = min(
+            100.0, (chapter_elapsed / chapter_total) * 100.0)
+        progress_bar.update(progress=progress_percent)
+        chapter_elapsed_str = self._format_time(chapter_elapsed)
+        chapter_total_str = self._format_time(chapter_total)
+        progress_info.update(
+            f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
+        progress_info.display = True
+        progress_bar.display = True
+
+    def _hide_progress(self) -> None:
+        """Hide the progress widget."""
+        progress_info = self.query_one("#progress_info", Static)
+        progress_bar = self.query_one("#progress_bar", ProgressBar)
+        progress_info.display = False
+        progress_bar.display = False
+
+    def _format_time(self, seconds: float) -> str:
+        """Format seconds as HH:MM:SS or MM:SS."""
+        total_seconds = int(seconds)
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        secs = total_seconds % 60
+
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+        return f"{minutes:02d}:{secs:02d}"
 
     @work(exclusive=True, thread=True)
     def _start_playback_async(self, asin: str) -> None:
