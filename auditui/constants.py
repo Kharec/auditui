@@ -115,6 +115,7 @@ Static#progress_info {
     text-style: bold;
     margin: 0;
     padding: 0;
+    width: 100%;
 }
 
 ProgressBar#progress_bar {
@@ -122,14 +123,17 @@ ProgressBar#progress_bar {
     background: #181825;
     border: none;
     margin: 0;
-    padding: 0;
+    padding: 0 1;
+    width: 100%;
+    align: center middle;
 }
 
-ProgressBar > .progress-bar--bar {
-    background: #89b4fa;
-}
-
-ProgressBar > .progress-bar--track {
+ProgressBar#progress_bar > .progress-bar--track {
     background: #45475a;
+}
+
+ProgressBar#progress_bar > .progress-bar--bar {
+    background: #a6e3a1;
+    width: auto;
 }
 """
