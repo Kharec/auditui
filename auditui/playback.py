@@ -74,7 +74,8 @@ class PlaybackController:
                         notify("Reached end of file")
                         self._reset_state()
                         return False
-                notify(f"Playback process exited immediately (code: {return_code})")
+                notify(
+                    f"Playback process exited immediately (code: {return_code})")
                 self.playback_process = None
                 return False
 
@@ -380,7 +381,8 @@ class PlaybackController:
 
         elapsed = self._get_current_elapsed()
         total_elapsed = self.seek_offset + elapsed
-        chapter_name, chapter_elapsed, chapter_total = self._get_current_chapter(total_elapsed)
+        chapter_name, chapter_elapsed, chapter_total = self._get_current_chapter(
+            total_elapsed)
         return (chapter_name, chapter_elapsed, chapter_total)
 
     def _get_current_chapter(self, elapsed: float) -> tuple[str, float, float]:
@@ -398,3 +400,78 @@ class PlaybackController:
         chapter_elapsed = max(0.0, elapsed - last_chapter["start_time"])
         chapter_total = last_chapter["end_time"] - last_chapter["start_time"]
         return (last_chapter["title"], chapter_elapsed, chapter_total)
+
+    def _get_current_chapter_index(self, elapsed: float) -> int | None:
+        """Get the index of the current chapter based on elapsed time."""
+        if not self.chapters:
+            return None
+
+        for idx, chapter in enumerate(self.chapters):
+            if chapter["start_time"] <= elapsed < chapter["end_time"]:
+                return idx
+
+        return len(self.chapters) - 1
+
+    def seek_to_chapter(self, direction: str) -> bool:
+        """Seek to next or previous chapter."""
+        if not self.is_playing or not self.current_file_path:
+            return False
+
+        if not self.chapters:
+            self.notify("No chapter information available")
+            return False
+
+        elapsed = self._get_current_elapsed()
+        current_total_position = self.seek_offset + elapsed
+        current_chapter_idx = self._get_current_chapter_index(
+            current_total_position)
+
+        if current_chapter_idx is None:
+            self.notify("Could not determine current chapter")
+            return False
+
+        if direction == "next":
+            if current_chapter_idx >= len(self.chapters) - 1:
+                self.notify("Already at last chapter")
+                return False
+            target_chapter = self.chapters[current_chapter_idx + 1]
+            new_position = target_chapter["start_time"]
+            message = f"Next chapter: {target_chapter['title']}"
+        else:
+            if current_chapter_idx <= 0:
+                self.notify("Already at first chapter")
+                return False
+            target_chapter = self.chapters[current_chapter_idx - 1]
+            new_position = target_chapter["start_time"]
+            message = f"Previous chapter: {target_chapter['title']}"
+
+        was_paused = self.is_paused
+        saved_state = {
+            "file_path": self.current_file_path,
+            "asin": self.current_asin,
+            "activation": self.activation_hex,
+            "duration": self.total_duration,
+            "chapters": self.chapters.copy(),
+        }
+
+        self._stop_process()
+        time.sleep(0.2)
+
+        if self.start(saved_state["file_path"], saved_state["activation"], self.notify, new_position):
+            self.current_asin = saved_state["asin"]
+            self.total_duration = saved_state["duration"]
+            self.chapters = saved_state["chapters"]
+            if was_paused:
+                time.sleep(0.3)
+                self.pause()
+            self.notify(message)
+            return True
+        return False
+
+    def seek_to_next_chapter(self) -> bool:
+        """Seek to the next chapter. Returns True if action was taken."""
+        return self.seek_to_chapter("next")
+
+    def seek_to_previous_chapter(self) -> bool:
+        """Seek to the previous chapter. Returns True if action was taken."""
+        return self.seek_to_chapter("previous")
