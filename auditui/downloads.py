@@ -24,6 +24,7 @@ class DownloadManager:
         self.client = client
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self._http_client = httpx.Client(auth=auth, timeout=30.0, follow_redirects=False)
 
     def get_or_download(self, asin: str, notify: StatusCallback | None = None) -> Path | None:
         """Get local path of AAX file, downloading if missing."""
@@ -108,11 +109,9 @@ class DownloadManager:
                 "key": asin,
                 "codec": codec,
             }
-            response = httpx.get(
+            response = self._http_client.get(
                 url=DOWNLOAD_URL,
                 params=params,
-                follow_redirects=False,
-                auth=self.auth,
             )
             response.raise_for_status()
 
@@ -131,7 +130,7 @@ class DownloadManager:
     ) -> Path | None:
         """Download file from URL to destination."""
         try:
-            with httpx.stream("GET", url) as response:
+            with self._http_client.stream("GET", url) as response:
                 response.raise_for_status()
                 total_size = int(response.headers.get("content-length", 0))
                 downloaded = 0
@@ -149,3 +148,8 @@ class DownloadManager:
             return dest_path
         except Exception:
             return None
+
+    def close(self) -> None:
+        """Close the HTTP client and release resources."""
+        if hasattr(self, "_http_client"):
+            self._http_client.close()
