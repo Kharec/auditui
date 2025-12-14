@@ -37,12 +37,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "audible" },
+    { name = "httpx" },
     { name = "textual" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "audible", specifier = ">=0.10.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "textual", specifier = ">=6.7.1" },
 ]
 
