@@ -95,6 +95,8 @@ class Auditui(App):
     def on_unmount(self) -> None:
         """Clean up on app exit."""
         self.playback.stop()
+        if self.download_manager:
+            self.download_manager.close()
 
     def on_key(self, event: Key) -> None:
         """Handle key presses."""
