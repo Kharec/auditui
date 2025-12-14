@@ -3,6 +3,7 @@
 import re
 from pathlib import Path
 from typing import Callable
+from urllib.parse import urlparse
 
 import audible
 import httpx
@@ -44,6 +45,11 @@ class DownloadManager:
                 notify("Failed to get download link")
             return None
 
+        if not self._validate_download_url(dl_link):
+            if notify:
+                notify("Invalid download URL")
+            return None
+
         if not self._download_file(dl_link, local_path, notify):
             if notify:
                 notify("Download failed")
@@ -65,6 +71,14 @@ class DownloadManager:
             return str(activation_bytes)
         except Exception:
             return None
+
+    def _validate_download_url(self, url: str) -> bool:
+        """Validate that the URL is a valid HTTP/HTTPS URL."""
+        try:
+            parsed = urlparse(url)
+            return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+        except Exception:
+            return False
 
     def _sanitize_filename(self, filename: str) -> str:
         """Remove invalid characters from filename."""
@@ -135,4 +149,3 @@ class DownloadManager:
             return dest_path
         except Exception:
             return None
-
