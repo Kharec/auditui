@@ -41,9 +41,9 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] print chapter and progress in the footer of the app while a book is playing
 - [x] chapter progress bar in footer
 - [x] add a control to jump 30s earlier/later
-- [ ] add control to go to the previous/next chapter
-- [ ] save/resume playback of a book from the last position, regardless of which device was used previously
+- [x] add control to go to the previous/next chapter
 - [ ] mark a book as finished or unfinished
+- [ ] save/resume playback of a book from the last position, regardless of which device was used previously
 - [ ] search the marketplace for books
 - [ ] add a book in your wishlist
 - [ ] get your listening stats from Audible
