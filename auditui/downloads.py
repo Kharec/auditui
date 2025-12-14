@@ -9,7 +9,7 @@ import audible
 import httpx
 from audible.activation_bytes import get_activation_bytes
 
-from .constants import CACHE_DIR, DEFAULT_CODEC, DOWNLOAD_URL, MIN_FILE_SIZE
+from .constants import CACHE_DIR, DEFAULT_CHUNK_SIZE, DEFAULT_CODEC, DOWNLOAD_URL, MIN_FILE_SIZE
 
 StatusCallback = Callable[[str], None]
 
@@ -18,13 +18,19 @@ class DownloadManager:
     """Handle retrieval and download of Audible titles."""
 
     def __init__(
-        self, auth: audible.Authenticator, client: audible.Client, cache_dir: Path = CACHE_DIR
+        self,
+        auth: audible.Authenticator,
+        client: audible.Client,
+        cache_dir: Path = CACHE_DIR,
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
     ) -> None:
         self.auth = auth
         self.client = client
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self._http_client = httpx.Client(auth=auth, timeout=30.0, follow_redirects=False)
+        self.chunk_size = chunk_size
+        self._http_client = httpx.Client(
+            auth=auth, timeout=30.0, follow_redirects=False)
 
     def get_or_download(self, asin: str, notify: StatusCallback | None = None) -> Path | None:
         """Get local path of AAX file, downloading if missing."""
@@ -136,7 +142,7 @@ class DownloadManager:
                 downloaded = 0
 
                 with open(dest_path, "wb") as file_handle:
-                    for chunk in response.iter_bytes(chunk_size=8192):
+                    for chunk in response.iter_bytes(chunk_size=self.chunk_size):
                         file_handle.write(chunk)
                         downloaded += len(chunk)
                         if total_size > 0 and notify:
