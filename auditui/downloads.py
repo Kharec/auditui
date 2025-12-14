@@ -29,8 +29,11 @@ class DownloadManager:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.chunk_size = chunk_size
-        self._http_client = httpx.Client(
-            auth=auth, timeout=30.0, follow_redirects=False)
+        self._http_client = httpx.Client(auth=auth, timeout=30.0, follow_redirects=True)
+        self._download_client = httpx.Client(
+            timeout=httpx.Timeout(connect=30.0, read=None, write=30.0, pool=30.0),
+            follow_redirects=True,
+        )
 
     def get_or_download(self, asin: str, notify: StatusCallback | None = None) -> Path | None:
         """Get local path of AAX file, downloading if missing."""
@@ -46,7 +49,7 @@ class DownloadManager:
         if notify:
             notify(f"Downloading to {local_path.name}...")
 
-        dl_link = self._get_download_link(asin)
+        dl_link = self._get_download_link(asin, notify=notify)
         if not dl_link:
             if notify:
                 notify("Failed to get download link")
@@ -103,9 +106,13 @@ class DownloadManager:
         except Exception:
             return None
 
-    def _get_download_link(self, asin: str, codec: str = DEFAULT_CODEC) -> str | None:
+    def _get_download_link(
+        self, asin: str, codec: str = DEFAULT_CODEC, notify: StatusCallback | None = None
+    ) -> str | None:
         """Get download link for book."""
         if self.auth.adp_token is None:
+            if notify:
+                notify("Missing ADP token (not authenticated?)")
             return None
 
         try:
@@ -123,12 +130,18 @@ class DownloadManager:
 
             link = response.headers.get("Location")
             if not link:
-                return None
+                link = str(response.url)
 
             tld = self.auth.locale.domain
             return link.replace("cds.audible.com", f"cds.audible.{tld}")
 
-        except Exception:
+        except httpx.HTTPError as exc:
+            if notify:
+                notify(f"Download-link request failed: {exc!s}")
+            return None
+        except Exception as exc:
+            if notify:
+                notify(f"Download-link error: {exc!s}")
             return None
 
     def _download_file(
@@ -136,7 +149,7 @@ class DownloadManager:
     ) -> Path | None:
         """Download file from URL to destination."""
         try:
-            with self._http_client.stream("GET", url) as response:
+            with self._download_client.stream("GET", url) as response:
                 response.raise_for_status()
                 total_size = int(response.headers.get("content-length", 0))
                 downloaded = 0
@@ -152,10 +165,39 @@ class DownloadManager:
                             )
 
             return dest_path
-        except Exception:
+        except httpx.HTTPStatusError as exc:
+            if notify:
+                notify(
+                    f"Download HTTP error: {exc.response.status_code} {exc.response.reason_phrase}"
+                )
+            try:
+                if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
+                    dest_path.unlink()
+            except OSError:
+                pass
+            return None
+        except httpx.HTTPError as exc:
+            if notify:
+                notify(f"Download network error: {exc!s}")
+            try:
+                if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
+                    dest_path.unlink()
+            except OSError:
+                pass
+            return None
+        except Exception as exc:
+            if notify:
+                notify(f"Download error: {exc!s}")
+            try:
+                if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
+                    dest_path.unlink()
+            except OSError:
+                pass
             return None
 
     def close(self) -> None:
-        """Close the HTTP client and release resources."""
+        """Close the HTTP clients and release resources."""
         if hasattr(self, "_http_client"):
             self._http_client.close()
+        if hasattr(self, "_download_client"):
+            self._download_client.close()
