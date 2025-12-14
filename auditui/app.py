@@ -18,22 +18,29 @@ from .playback import PlaybackController
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
 
+AUTHOR_NAME_MAX_LENGTH = 40
+AUTHOR_NAME_DISPLAY_LENGTH = 37
+PROGRESS_COLUMN_INDEX = 3
+SEEK_SECONDS = 30.0
+
 
 class Auditui(App):
     """Main application class for the Audible TUI app."""
 
     BINDINGS = [
-        ("d", "toggle_dark", "Toggle dark mode"),
-        ("s", "sort", "Sort by title"),
-        ("r", "reverse_sort", "Reverse sort"),
-        ("p", "sort_by_progress", "Sort by progress"),
-        ("a", "show_all", "Show all books"),
-        ("u", "show_unfinished", "Show unfinished"),
-        ("enter", "play_selected", "Play selected book"),
+        ("d", "toggle_dark", "Dark mode"),
+        ("s", "sort", "Sort"),
+        ("r", "reverse_sort", "Reverse"),
+        ("p", "sort_by_progress", "Sort progress"),
+        ("a", "show_all", "All books"),
+        ("u", "show_unfinished", "Unfinished"),
+        ("enter", "play_selected", "Play"),
         ("space", "toggle_playback", "Pause/Resume"),
-        ("left", "seek_backward", "Seek -30s"),
-        ("right", "seek_forward", "Seek +30s"),
-        ("q", "quit", "Quit application"),
+        ("left", "seek_backward", "-30s"),
+        ("right", "seek_forward", "+30s"),
+        ("ctrl+left", "previous_chapter", "Previous chapter"),
+        ("ctrl+right", "next_chapter", "Next chapter"),
+        ("q", "quit", "Quit"),
     ]
 
     CSS = TABLE_CSS
@@ -54,7 +61,7 @@ class Auditui(App):
         self.progress_sort_reverse = False
         self.title_column_key: ColumnKey | None = None
         self.progress_column_key: ColumnKey | None = None
-        self.progress_column_index = 3
+        self.progress_column_index = PROGRESS_COLUMN_INDEX
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -79,7 +86,8 @@ class Auditui(App):
             self.update_status("Fetching library...")
             self.fetch_library()
         else:
-            self.update_status("Not authenticated. Please restart and authenticate.")
+            self.update_status(
+                "Not authenticated. Please restart and authenticate.")
 
         self.set_interval(1.0, self._check_playback_status)
         self.set_interval(0.5, self._update_progress)
@@ -89,7 +97,25 @@ class Auditui(App):
         self.playback.stop()
 
     def on_key(self, event: Key) -> None:
-        """Handle key presses on DataTable."""
+        """Handle key presses."""
+        if self.playback.is_playing:
+            if event.key == "ctrl+left":
+                event.prevent_default()
+                self.action_previous_chapter()
+                return
+            elif event.key == "ctrl+right":
+                event.prevent_default()
+                self.action_next_chapter()
+                return
+            elif event.key == "left":
+                event.prevent_default()
+                self.action_seek_backward()
+                return
+            elif event.key == "right":
+                event.prevent_default()
+                self.action_seek_forward()
+                return
+
         if isinstance(self.focused, DataTable):
             if event.key == "enter":
                 event.prevent_default()
@@ -97,12 +123,6 @@ class Auditui(App):
             elif event.key == "space":
                 event.prevent_default()
                 self.action_toggle_playback()
-            elif event.key == "left" and self.playback.is_playing:
-                event.prevent_default()
-                self.action_seek_backward()
-            elif event.key == "right" and self.playback.is_playing:
-                event.prevent_default()
-                self.action_seek_forward()
 
     def update_status(self, message: str) -> None:
         """Update the status message in the UI."""
@@ -127,7 +147,7 @@ class Auditui(App):
         except (OSError, ValueError, KeyError) as exc:
             self.call_from_thread(self.on_library_error, str(exc))
 
-    def on_library_loaded(self, items: list) -> None:
+    def on_library_loaded(self, items: list[dict]) -> None:
         """Handle successful library load."""
         self.all_items = items
         self.update_status(f"Loaded {len(items)} books")
@@ -137,7 +157,7 @@ class Auditui(App):
         """Handle library fetch error."""
         self.update_status(f"Error fetching library: {error}")
 
-    def _populate_table(self, items: list) -> None:
+    def _populate_table(self, items: list[dict]) -> None:
         """Populate the DataTable with library items."""
         table = self.query_one(DataTable)
         table.clear()
@@ -149,14 +169,18 @@ class Auditui(App):
         for item in items:
             title = self.library_client.extract_title(item)
             author_names = self.library_client.extract_authors(item)
-            if author_names and len(author_names) > 40:
-                author_names = f"{author_names[:37]}..."
+            if author_names and len(author_names) > AUTHOR_NAME_MAX_LENGTH:
+                author_names = f"{author_names[:AUTHOR_NAME_DISPLAY_LENGTH]}..."
             minutes = self.library_client.extract_runtime_minutes(item)
             runtime_str = self.library_client.format_duration(
                 minutes, unit="minutes", default_none="Unknown length"
             )
             percent_complete = self.library_client.extract_progress_info(item)
-            progress_str = f"{percent_complete:.1f}%" if percent_complete and percent_complete > 0 else "0%"
+            progress_str = (
+                f"{percent_complete:.1f}%"
+                if percent_complete and percent_complete > 0
+                else "0%"
+            )
 
             table.add_row(
                 title,
@@ -234,7 +258,8 @@ class Auditui(App):
     def action_play_selected(self) -> None:
         """Start playing the selected book."""
         if not self.download_manager:
-            self.update_status("Not authenticated. Please restart and authenticate.")
+            self.update_status(
+                "Not authenticated. Please restart and authenticate.")
             return
 
         table = self.query_one(DataTable)
@@ -247,8 +272,12 @@ class Auditui(App):
             self.update_status("Invalid selection")
             return
 
+        if not self.library_client:
+            self.update_status("Library client not available")
+            return
+
         selected_item = self.current_items[cursor_row]
-        asin = self.library_client.extract_asin(selected_item) if self.library_client else None
+        asin = self.library_client.extract_asin(selected_item)
 
         if not asin:
             self.update_status("Could not get ASIN for selected book")
@@ -263,12 +292,22 @@ class Auditui(App):
 
     def action_seek_forward(self) -> None:
         """Seek forward 30 seconds."""
-        if not self.playback.seek_forward(30.0):
+        if not self.playback.seek_forward(SEEK_SECONDS):
             self._no_playback_message()
 
     def action_seek_backward(self) -> None:
         """Seek backward 30 seconds."""
-        if not self.playback.seek_backward(30.0):
+        if not self.playback.seek_backward(SEEK_SECONDS):
+            self._no_playback_message()
+
+    def action_next_chapter(self) -> None:
+        """Seek to the next chapter."""
+        if not self.playback.seek_to_next_chapter():
+            self._no_playback_message()
+
+    def action_previous_chapter(self) -> None:
+        """Seek to the previous chapter."""
+        if not self.playback.seek_to_previous_chapter():
             self._no_playback_message()
 
     def _no_playback_message(self) -> None:
@@ -301,11 +340,13 @@ class Auditui(App):
         progress_info = self.query_one("#progress_info", Static)
         progress_bar = self.query_one("#progress_bar", ProgressBar)
 
-        progress_percent = min(100.0, max(0.0, (chapter_elapsed / chapter_total) * 100.0))
+        progress_percent = min(100.0, max(
+            0.0, (chapter_elapsed / chapter_total) * 100.0))
         progress_bar.update(progress=progress_percent)
         chapter_elapsed_str = self._format_time(chapter_elapsed)
         chapter_total_str = self._format_time(chapter_total)
-        progress_info.update(f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
+        progress_info.update(
+            f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
         progress_info.display = True
         progress_bar.display = True
 
