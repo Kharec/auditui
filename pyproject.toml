@@ -4,4 +4,8 @@ version = "0.1.0"
 description = "An Audible TUI client"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["audible>=0.10.0", "textual>=6.7.1"]
+dependencies = [
+    "audible>=0.10.0",
+    "httpx>=0.28.1",
+    "textual>=6.7.1",
+]
