@@ -52,7 +52,8 @@ class Auditui(App):
         self.download_manager = (
             DownloadManager(auth, client) if auth and client else None
         )
-        self.playback = PlaybackController(self.update_status)
+        self.playback = PlaybackController(
+            self.update_status, self.library_client)
 
         self.all_items: list[dict] = []
         self.current_items: list[dict] = []
@@ -91,6 +92,7 @@ class Auditui(App):
 
         self.set_interval(1.0, self._check_playback_status)
         self.set_interval(0.5, self._update_progress)
+        self.set_interval(30.0, self._save_position_periodically)
 
     def on_unmount(self) -> None:
         """Clean up on app exit."""
@@ -374,6 +376,10 @@ class Auditui(App):
         if hours > 0:
             return f"{hours:02d}:{minutes:02d}:{secs:02d}"
         return f"{minutes:02d}:{secs:02d}"
+
+    def _save_position_periodically(self) -> None:
+        """Periodically save playback position."""
+        self.playback.update_position_if_needed()
 
     @work(exclusive=True, thread=True)
     def _start_playback_async(self, asin: str) -> None:
