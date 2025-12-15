@@ -58,8 +58,8 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] chapter progress bar in footer
 - [x] add a control to jump 30s earlier/later
 - [x] add control to go to the previous/next chapter
+- [x] save/resume playback of a book from the last position, regardless of which device was used previously
 - [ ] mark a book as finished or unfinished
-- [ ] save/resume playback of a book from the last position, regardless of which device was used previously
 - [ ] search the marketplace for books
 - [ ] add a book in your wishlist
 - [ ] get your listening stats from Audible
