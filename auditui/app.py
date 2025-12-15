@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import unicodedata
 from typing import TYPE_CHECKING
 
 from textual import work
@@ -15,6 +14,7 @@ from .constants import *
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
+from .table_helpers import create_progress_sort_key, create_title_sort_key
 
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
@@ -221,14 +221,8 @@ class Auditui(App):
         """Sort table by title, toggling direction on each press."""
         table = self.query_one(DataTable)
         if table.row_count > 0 and self.title_column_key:
-            def title_key(row_values):
-                title_cell = row_values[0]
-                if isinstance(title_cell, str):
-                    normalized = unicodedata.normalize('NFD', title_cell)
-                    return normalized.encode('ascii', 'ignore').decode('ascii').lower()
-                return str(title_cell).lower()
-
-            table.sort(key=title_key, reverse=self.title_sort_reverse)
+            title_key, reverse = create_title_sort_key(self.title_sort_reverse)
+            table.sort(key=title_key, reverse=reverse)
             self.title_sort_reverse = not self.title_sort_reverse
 
     def action_sort_by_progress(self) -> None:
@@ -236,17 +230,9 @@ class Auditui(App):
         table = self.query_one(DataTable)
         if table.row_count > 0:
             self.progress_sort_reverse = not self.progress_sort_reverse
-
-            def progress_key(row_values):
-                progress_cell = row_values[self.progress_column_index]
-                if isinstance(progress_cell, str):
-                    try:
-                        return float(progress_cell.rstrip("%"))
-                    except (ValueError, AttributeError):
-                        return 0.0
-                return 0.0
-
-            table.sort(key=progress_key, reverse=self.progress_sort_reverse)
+            progress_key, reverse = create_progress_sort_key(
+                self.progress_column_index, self.progress_sort_reverse)
+            table.sort(key=progress_key, reverse=reverse)
 
     def action_show_all(self) -> None:
         """Toggle between showing all and unfinished books."""

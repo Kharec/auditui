@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import signal
@@ -13,6 +12,7 @@ from typing import Callable
 
 from .downloads import DownloadManager
 from .library import LibraryClient
+from .media_info import load_media_info
 
 StatusCallback = Callable[[str], None]
 
@@ -89,7 +89,9 @@ class PlaybackController:
             self.playback_start_time = time.time()
             self.paused_duration = 0.0
             self.pause_start_time = None
-            self._load_media_info(path, activation_hex)
+            duration, chapters = load_media_info(path, activation_hex)
+            self.total_duration = duration
+            self.chapters = chapters
             notify(f"Playing: {path.name}")
             return True
 
@@ -357,41 +359,6 @@ class PlaybackController:
     def seek_backward(self, seconds: float = 30.0) -> bool:
         """Seek backward by specified seconds. Returns True if action was taken."""
         return self._seek(seconds, "backward")
-
-    def _load_media_info(self, path: Path, activation_hex: str | None) -> None:
-        """Load media information including duration and chapters using ffprobe."""
-        if not shutil.which("ffprobe"):
-            return
-
-        try:
-            cmd = ["ffprobe", "-v", "quiet", "-print_format",
-                   "json", "-show_format", "-show_chapters"]
-            if activation_hex:
-                cmd.extend(["-activation_bytes", activation_hex])
-            cmd.append(str(path))
-
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=10)
-            if result.returncode != 0:
-                return
-
-            data = json.loads(result.stdout)
-            format_info = data.get("format", {})
-            duration_str = format_info.get("duration")
-            if duration_str:
-                self.total_duration = float(duration_str)
-
-            chapters_data = data.get("chapters", [])
-            self.chapters = [
-                {
-                    "start_time": float(ch.get("start_time", 0)),
-                    "end_time": float(ch.get("end_time", 0)),
-                    "title": ch.get("tags", {}).get("title", f"Chapter {idx + 1}"),
-                }
-                for idx, ch in enumerate(chapters_data)
-            ]
-        except (json.JSONDecodeError, subprocess.TimeoutExpired, ValueError, KeyError):
-            pass
 
     def get_current_progress(self) -> tuple[str, float, float] | None:
         """Get current playback progress."""
