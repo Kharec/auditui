@@ -31,8 +31,7 @@ class Auditui(App):
         ("d", "toggle_dark", "Dark mode"),
         ("s", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
-        ("a", "show_all", "All books"),
-        ("u", "show_unfinished", "Unfinished"),
+        ("a", "show_all", "All/unfinished"),
         ("enter", "play_selected", "Play"),
         ("space", "toggle_playback", "Pause/Resume"),
         ("left", "seek_backward", "-30s"),
@@ -245,8 +244,11 @@ class Auditui(App):
             table.sort(key=progress_key, reverse=self.progress_sort_reverse)
 
     def action_show_all(self) -> None:
-        """Show all books."""
-        self.show_all()
+        """Toggle between showing all and unfinished books."""
+        if self.show_all_mode:
+            self.show_unfinished()
+        else:
+            self.show_all()
 
     def action_show_unfinished(self) -> None:
         """Show unfinished books."""
