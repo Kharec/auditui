@@ -227,3 +227,15 @@ class LibraryClient:
             parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
 
         return " ".join(parts) if parts else default_none
+
+    @staticmethod
+    def format_time(seconds: float) -> str:
+        """Format seconds as HH:MM:SS or MM:SS."""
+        total_seconds = int(seconds)
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        secs = total_seconds % 60
+
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+        return f"{minutes:02d}:{secs:02d}"
