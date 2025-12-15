@@ -7,11 +7,7 @@ from pathlib import Path
 
 
 def load_media_info(path: Path, activation_hex: str | None = None) -> tuple[float | None, list[dict]]:
-    """Load media information including duration and chapters using ffprobe.
-
-    Returns:
-        Tuple of (duration in seconds, list of chapter dicts with start_time, end_time, title)
-    """
+    """Load media information including duration and chapters using ffprobe."""
     if not shutil.which("ffprobe"):
         return None, []
 
