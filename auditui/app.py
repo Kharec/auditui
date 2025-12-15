@@ -347,8 +347,8 @@ class Auditui(App):
         progress_percent = min(100.0, max(
             0.0, (chapter_elapsed / chapter_total) * 100.0))
         progress_bar.update(progress=progress_percent)
-        chapter_elapsed_str = self._format_time(chapter_elapsed)
-        chapter_total_str = self._format_time(chapter_total)
+        chapter_elapsed_str = LibraryClient.format_time(chapter_elapsed)
+        chapter_total_str = LibraryClient.format_time(chapter_total)
         progress_info.update(
             f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
         progress_info.display = True
@@ -360,17 +360,6 @@ class Auditui(App):
         progress_bar = self.query_one("#progress_bar", ProgressBar)
         progress_info.display = False
         progress_bar.display = False
-
-    def _format_time(self, seconds: float) -> str:
-        """Format seconds as HH:MM:SS or MM:SS."""
-        total_seconds = int(seconds)
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        secs = total_seconds % 60
-
-        if hours > 0:
-            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-        return f"{minutes:02d}:{secs:02d}"
 
     def _save_position_periodically(self) -> None:
         """Periodically save playback position."""
