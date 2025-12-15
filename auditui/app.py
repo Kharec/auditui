@@ -29,9 +29,8 @@ class Auditui(App):
 
     BINDINGS = [
         ("d", "toggle_dark", "Dark mode"),
-        ("s", "sort", "Sort"),
-        ("r", "reverse_sort", "Reverse"),
-        ("p", "sort_by_progress", "Sort progress"),
+        ("s", "sort", "Sort by name"),
+        ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All books"),
         ("u", "show_unfinished", "Unfinished"),
         ("enter", "play_selected", "Play"),
@@ -58,6 +57,7 @@ class Auditui(App):
         self.all_items: list[dict] = []
         self.current_items: list[dict] = []
         self.show_all_mode = False
+        self.title_sort_reverse = False
         self.progress_sort_reverse = False
         self.title_column_key: ColumnKey | None = None
         self.progress_column_key: ColumnKey | None = None
@@ -221,16 +221,11 @@ class Auditui(App):
         )
 
     def action_sort(self) -> None:
-        """Sort table by title in ascending order."""
+        """Sort table by title, toggling direction on each press."""
         table = self.query_one(DataTable)
         if table.row_count > 0 and self.title_column_key:
-            table.sort(self.title_column_key)
-
-    def action_reverse_sort(self) -> None:
-        """Sort table by title in descending order."""
-        table = self.query_one(DataTable)
-        if table.row_count > 0 and self.title_column_key:
-            table.sort(self.title_column_key, reverse=True)
+            table.sort(self.title_column_key, reverse=self.title_sort_reverse)
+            self.title_sort_reverse = not self.title_sort_reverse
 
     def action_sort_by_progress(self) -> None:
         """Sort table by progress percentage, toggling direction on each press."""
