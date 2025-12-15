@@ -81,7 +81,7 @@ class DownloadManager:
             if isinstance(activation_bytes, bytes):
                 return activation_bytes.hex()
             return str(activation_bytes)
-        except Exception:
+        except (OSError, ValueError, KeyError, AttributeError):
             return None
 
     def _validate_download_url(self, url: str) -> bool:
@@ -89,7 +89,7 @@ class DownloadManager:
         try:
             parsed = urlparse(url)
             return parsed.scheme in ("http", "https") and bool(parsed.netloc)
-        except Exception:
+        except (ValueError, AttributeError):
             return False
 
     def _sanitize_filename(self, filename: str) -> str:
@@ -105,7 +105,7 @@ class DownloadManager:
             )
             product = product_info.get("product", {})
             return product.get("title") or "Unknown Title"
-        except Exception:
+        except (OSError, ValueError, KeyError):
             return None
 
     def _get_download_link(
@@ -141,7 +141,7 @@ class DownloadManager:
             if notify:
                 notify(f"Download-link request failed: {exc!s}")
             return None
-        except Exception as exc:
+        except (OSError, ValueError, KeyError, AttributeError) as exc:
             if notify:
                 notify(f"Download-link error: {exc!s}")
             return None
@@ -187,7 +187,7 @@ class DownloadManager:
             except OSError:
                 pass
             return None
-        except Exception as exc:
+        except (OSError, ValueError, KeyError) as exc:
             if notify:
                 notify(f"Download error: {exc!s}")
             try:

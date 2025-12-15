@@ -93,7 +93,7 @@ class PlaybackController:
             notify(f"Playing: {path.name}")
             return True
 
-        except Exception as exc:
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
             notify(f"Error starting playback: {exc}")
             return False
 
@@ -202,7 +202,7 @@ class PlaybackController:
             self.notify("Process no longer exists")
         except PermissionError:
             self.notify(f"Permission denied: cannot {action} playback")
-        except Exception as exc:
+        except (OSError, ValueError) as exc:
             self.notify(f"Error {action}ing playback: {exc}")
 
     def is_alive(self) -> bool:
@@ -245,7 +245,7 @@ class PlaybackController:
                     start_position = last_position
                     notify(
                         f"Resuming from {LibraryClient.format_time(start_position)}")
-            except Exception:
+            except (OSError, ValueError, KeyError):
                 pass
 
         notify(f"Starting playback of {local_path.name}...")
@@ -510,7 +510,7 @@ class PlaybackController:
         try:
             self.library_client.save_last_position(
                 self.current_asin, current_position)
-        except Exception:
+        except (OSError, ValueError, KeyError):
             pass
 
     def update_position_if_needed(self) -> None:

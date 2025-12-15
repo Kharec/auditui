@@ -157,7 +157,7 @@ class LibraryClient:
                     return float(position_ms) / 1000.0
 
             return None
-        except Exception:
+        except (OSError, ValueError, KeyError):
             return None
 
     def _get_content_reference(self, asin: str) -> dict | None:
@@ -172,7 +172,7 @@ class LibraryClient:
             if isinstance(content_reference, dict):
                 return content_reference
             return None
-        except Exception:
+        except (OSError, ValueError, KeyError):
             return None
 
     def save_last_position(self, asin: str, position_seconds: float) -> bool:
@@ -203,7 +203,7 @@ class LibraryClient:
                 body=body,
             )
             return True
-        except Exception:
+        except (OSError, ValueError, KeyError):
             return False
 
     @staticmethod
