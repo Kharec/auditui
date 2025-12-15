@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Callable
 
 from .downloads import DownloadManager
+from .library import LibraryClient
 
 StatusCallback = Callable[[str], None]
 
@@ -19,8 +20,9 @@ StatusCallback = Callable[[str], None]
 class PlaybackController:
     """Manage playback through ffplay."""
 
-    def __init__(self, notify: StatusCallback) -> None:
+    def __init__(self, notify: StatusCallback, library_client: LibraryClient | None = None) -> None:
         self.notify = notify
+        self.library_client = library_client
         self.playback_process: subprocess.Popen | None = None
         self.is_playing = False
         self.is_paused = False
@@ -33,6 +35,8 @@ class PlaybackController:
         self.chapters: list[dict] = []
         self.seek_offset: float = 0.0
         self.activation_hex: str | None = None
+        self.last_save_time: float = 0.0
+        self.position_save_interval: float = 30.0
 
     def start(
         self,
@@ -98,6 +102,8 @@ class PlaybackController:
         if self.playback_process is None:
             return
 
+        self._save_current_position()
+
         try:
             if self.playback_process.poll() is None:
                 self.playback_process.terminate()
@@ -161,6 +167,7 @@ class PlaybackController:
         self.chapters = []
         self.seek_offset = 0.0
         self.activation_hex = None
+        self.last_save_time = 0.0
 
     def _validate_playback_state(self, require_paused: bool) -> bool:
         """Validate playback state before pause/resume operations."""
@@ -230,9 +237,21 @@ class PlaybackController:
             notify("Failed to get activation bytes")
             return False
 
+        start_position = 0.0
+        if self.library_client:
+            try:
+                last_position = self.library_client.get_last_position(asin)
+                if last_position is not None and last_position > 0:
+                    start_position = last_position
+                    notify(
+                        f"Resuming from {self._format_position(start_position)}")
+            except Exception:
+                pass
+
         notify(f"Starting playback of {local_path.name}...")
         self.current_asin = asin
-        return self.start(local_path, activation_hex, notify)
+        self.last_save_time = time.time()
+        return self.start(local_path, activation_hex, notify, start_position)
 
     def toggle_playback(self) -> bool:
         """Toggle pause/resume state. Returns True if action was taken."""
@@ -475,3 +494,42 @@ class PlaybackController:
     def seek_to_previous_chapter(self) -> bool:
         """Seek to the previous chapter. Returns True if action was taken."""
         return self.seek_to_chapter("previous")
+
+    def _save_current_position(self) -> None:
+        """Save the current playback position to Audible."""
+        if not (self.library_client and self.current_asin and self.is_playing):
+            return
+
+        if self.playback_start_time is None:
+            return
+
+        current_position = self.seek_offset + self._get_current_elapsed()
+        if current_position <= 0:
+            return
+
+        try:
+            self.library_client.save_last_position(
+                self.current_asin, current_position)
+        except Exception:
+            pass
+
+    def _format_position(self, seconds: float) -> str:
+        """Format position in seconds as HH:MM:SS or MM:SS."""
+        total_seconds = int(seconds)
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        secs = total_seconds % 60
+
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+        return f"{minutes:02d}:{secs:02d}"
+
+    def update_position_if_needed(self) -> None:
+        """Periodically save position if enough time has passed."""
+        if not (self.is_playing and self.library_client and self.current_asin):
+            return
+
+        current_time = time.time()
+        if current_time - self.last_save_time >= self.position_save_interval:
+            self._save_current_position()
+            self.last_save_time = current_time
