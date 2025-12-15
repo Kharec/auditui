@@ -37,7 +37,8 @@ class AudibleStats:
                 self.client = audible.Client(auth=self.auth)
                 return
             except Exception:
-                logger.info("Failed to load existing auth. Re-authenticating.\n")
+                logger.info(
+                    "Failed to load existing auth. Re-authenticating.\n")
 
         email = input("Email: ")
         password = getpass("Password: ")
@@ -85,7 +86,8 @@ class AudibleStats:
                     monthly_listening_interval_start_date=f"{middle}-01",
                     store="Audible",
                 )
-                monthly_stats = stats.get("aggregated_monthly_listening_stats", [])
+                monthly_stats = stats.get(
+                    "aggregated_monthly_listening_stats", [])
                 has_activity = bool(
                     monthly_stats
                     and any(stat.get("aggregated_sum", 0) > 0 for stat in monthly_stats)
@@ -101,12 +103,38 @@ class AudibleStats:
 
         return earliest_year
 
+    def get_current_month_listening_time(self) -> tuple[int, int, int]:
+        """Get total listening time for the current month as (hours, minutes, seconds)."""
+        try:
+            stats = self.client.get(
+                "1.0/stats/aggregates",
+                monthly_listening_interval_duration="1",
+                monthly_listening_interval_start_date=date.today().strftime("%Y-%m"),
+                store="Audible",
+            )
+            monthly_stats = stats.get("aggregated_monthly_listening_stats", [])
+            if not monthly_stats:
+                return (0, 0, 0)
+
+            total_milliseconds = sum(
+                stat.get("aggregated_sum", 0) for stat in monthly_stats
+            )
+            total_seconds = int(total_milliseconds // 1000)
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return (hours, minutes, seconds)
+        except Exception as e:
+            logger.warning(f"Could not get current month listening time: {e}")
+            return (0, 0, 0)
+
 
 def main() -> None:
     """Main entry point."""
     worker = AudibleStats()
     worker.authenticate()
     print(worker.get_signup_year())
+    hours, minutes, seconds = worker.get_current_month_listening_time()
+    print(f"Total listening time this month: {hours}h {minutes}m {seconds}s")
 
 
 if __name__ == "__main__":
