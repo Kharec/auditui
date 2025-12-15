@@ -28,7 +28,7 @@ class Auditui(App):
     """Main application class for the Audible TUI app."""
 
     BINDINGS = [
-        ("d", "toggle_dark", "Dark mode"),
+        ("d", "toggle_dark", "Light/Dark mode"),
         ("s", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/unfinished"),
