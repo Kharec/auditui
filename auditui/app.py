@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import unicodedata
 from typing import TYPE_CHECKING
 
 from textual import work
@@ -223,7 +224,14 @@ class Auditui(App):
         """Sort table by title, toggling direction on each press."""
         table = self.query_one(DataTable)
         if table.row_count > 0 and self.title_column_key:
-            table.sort(self.title_column_key, reverse=self.title_sort_reverse)
+            def title_key(row_values):
+                title_cell = row_values[0]
+                if isinstance(title_cell, str):
+                    normalized = unicodedata.normalize('NFD', title_cell)
+                    return normalized.encode('ascii', 'ignore').decode('ascii').lower()
+                return str(title_cell).lower()
+
+            table.sort(key=title_key, reverse=self.title_sort_reverse)
             self.title_sort_reverse = not self.title_sort_reverse
 
     def action_sort_by_progress(self) -> None:
