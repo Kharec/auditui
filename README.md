@@ -32,6 +32,22 @@ $ uv run main.py
 
 Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
+### Bindings
+
+| Key          | Action                     |
+| ------------ | -------------------------- |
+| `d`          | Toggle dark/light mode     |
+| `n`          | Sort by name               |
+| `p`          | Sort by progress           |
+| `a`          | Show all/unfinished        |
+| `enter`      | Play the selected book     |
+| `space`      | Pause/resume the playback  |
+| `left`       | Seek backward 30 seconds   |
+| `right`      | Seek forward 30 seconds    |
+| `ctrl+left`  | Go to the previous chapter |
+| `ctrl+right` | Go to the next chapter     |
+| `q`          | Quit the application       |
+
 ## Roadmap
 
 - [x] list your library
@@ -48,6 +64,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [ ] add a book in your wishlist
 - [ ] get your listening stats from Audible
 - [ ] add multiple themes and theme selector
+- [ ] installation setup
 
 All of this, and of course:
 
