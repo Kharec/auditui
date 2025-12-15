@@ -29,9 +29,11 @@ class DownloadManager:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.chunk_size = chunk_size
-        self._http_client = httpx.Client(auth=auth, timeout=30.0, follow_redirects=True)
+        self._http_client = httpx.Client(
+            auth=auth, timeout=30.0, follow_redirects=True)
         self._download_client = httpx.Client(
-            timeout=httpx.Timeout(connect=30.0, read=None, write=30.0, pool=30.0),
+            timeout=httpx.Timeout(connect=30.0, read=None,
+                                  write=30.0, pool=30.0),
             follow_redirects=True,
         )
 
