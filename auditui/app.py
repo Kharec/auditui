@@ -29,7 +29,7 @@ class Auditui(App):
 
     BINDINGS = [
         ("d", "toggle_dark", "Light/Dark mode"),
-        ("s", "sort", "Sort by name"),
+        ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/unfinished"),
         ("enter", "play_selected", "Play"),
