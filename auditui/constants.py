@@ -11,6 +11,11 @@ DEFAULT_CHUNK_SIZE = 8192
 
 TABLE_COLUMNS = ("Title", "Author", "Length", "Progress")
 
+AUTHOR_NAME_MAX_LENGTH = 40
+AUTHOR_NAME_DISPLAY_LENGTH = 37
+PROGRESS_COLUMN_INDEX = 3
+SEEK_SECONDS = 30.0
+
 TABLE_CSS = """
 Screen {
     background: #1e1e2e;

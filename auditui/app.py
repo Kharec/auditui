@@ -11,18 +11,13 @@ from textual.events import Key
 from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
 from textual.worker import get_current_worker
 
-from .constants import TABLE_COLUMNS, TABLE_CSS
+from .constants import *
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
 
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
-
-AUTHOR_NAME_MAX_LENGTH = 40
-AUTHOR_NAME_DISPLAY_LENGTH = 37
-PROGRESS_COLUMN_INDEX = 3
-SEEK_SECONDS = 30.0
 
 
 class Auditui(App):
