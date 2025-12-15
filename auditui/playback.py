@@ -244,7 +244,7 @@ class PlaybackController:
                 if last_position is not None and last_position > 0:
                     start_position = last_position
                     notify(
-                        f"Resuming from {self._format_position(start_position)}")
+                        f"Resuming from {LibraryClient.format_time(start_position)}")
             except Exception:
                 pass
 
@@ -512,17 +512,6 @@ class PlaybackController:
                 self.current_asin, current_position)
         except Exception:
             pass
-
-    def _format_position(self, seconds: float) -> str:
-        """Format position in seconds as HH:MM:SS or MM:SS."""
-        total_seconds = int(seconds)
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        secs = total_seconds % 60
-
-        if hours > 0:
-            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
-        return f"{minutes:02d}:{secs:02d}"
 
     def update_position_if_needed(self) -> None:
         """Periodically save position if enough time has passed."""
