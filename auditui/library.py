@@ -69,7 +69,8 @@ class LibraryClient:
         if not authors and "authors" in item:
             authors = item.get("authors", [])
 
-        author_names = [a.get("name", "") for a in authors if isinstance(a, dict)]
+        author_names = [a.get("name", "")
+                        for a in authors if isinstance(a, dict)]
         return ", ".join(author_names) or "Unknown"
 
     def extract_runtime_minutes(self, item: dict) -> int | None:
@@ -127,8 +128,83 @@ class LibraryClient:
                 percent_complete = listening_status.get("percent_complete", 0)
 
         return bool(is_finished_flag) or (
-            isinstance(percent_complete, (int, float)) and percent_complete >= 100
+            isinstance(percent_complete, (int, float)
+                       ) and percent_complete >= 100
         )
+
+    def get_last_position(self, asin: str) -> float | None:
+        """Get the last playback position for a book in seconds."""
+        try:
+            response = self.client.get(
+                path="1.0/annotations/lastpositions",
+                asins=asin,
+            )
+            annotations = response.get("asin_last_position_heard_annots", [])
+
+            for annot in annotations:
+                if annot.get("asin") != asin:
+                    continue
+
+                last_position_heard = annot.get("last_position_heard", {})
+                if not isinstance(last_position_heard, dict):
+                    continue
+
+                if last_position_heard.get("status") == "DoesNotExist":
+                    return None
+
+                position_ms = last_position_heard.get("position_ms")
+                if position_ms is not None:
+                    return float(position_ms) / 1000.0
+
+            return None
+        except Exception:
+            return None
+
+    def _get_content_reference(self, asin: str) -> dict | None:
+        """Get content reference data including ACR and version."""
+        try:
+            response = self.client.get(
+                path=f"1.0/content/{asin}/metadata",
+                response_groups="content_reference",
+            )
+            content_metadata = response.get("content_metadata", {})
+            content_reference = content_metadata.get("content_reference", {})
+            if isinstance(content_reference, dict):
+                return content_reference
+            return None
+        except Exception:
+            return None
+
+    def save_last_position(self, asin: str, position_seconds: float) -> bool:
+        """Save the last playback position for a book."""
+        if position_seconds <= 0:
+            return False
+
+        content_ref = self._get_content_reference(asin)
+        if not content_ref:
+            return False
+
+        acr = content_ref.get("acr")
+        if not acr:
+            return False
+
+        body = {
+            "acr": acr,
+            "asin": asin,
+            "position_ms": int(position_seconds * 1000),
+        }
+
+        if version := content_ref.get("version"):
+            body["version"] = version
+
+        try:
+            self.client.put(
+                path=f"1.0/lastpositions/{asin}",
+                body=body,
+            )
+            return True
+        except Exception:
+            return False
 
     @staticmethod
     def format_duration(
