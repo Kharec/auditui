@@ -14,7 +14,7 @@ from .constants import *
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
-from .table_helpers import create_progress_sort_key, create_title_sort_key
+from .table_utils import create_progress_sort_key, create_title_sort_key
 
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
