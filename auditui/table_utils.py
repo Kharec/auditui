@@ -1,4 +1,4 @@
-"""Helper functions for table operations."""
+"""Utils for table operations."""
 
 import unicodedata
 from typing import Callable
