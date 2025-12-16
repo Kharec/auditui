@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.events import Key
 from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
 from textual.worker import get_current_worker
@@ -29,6 +30,7 @@ class Auditui(App):
     """Main application class for the Audible TUI app."""
 
     theme = "textual-dark"
+    SHOW_PALETTE = False
 
     BINDINGS = [
         ("n", "sort", "Sort by name"),
@@ -75,7 +77,7 @@ class Auditui(App):
         yield table
         yield Static("", id="progress_info")
         yield ProgressBar(id="progress_bar", show_eta=False, show_percentage=False, total=100)
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def on_mount(self) -> None:
         """Initialize the table and start fetching library data."""
