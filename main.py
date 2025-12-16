@@ -23,7 +23,7 @@ def main() -> None:
     config_dir = AUTH_PATH.parent
 
     if not config_dir.exists():
-        print("No configuration yet, please run 'auditui configure' to create it")
+        print("No configuration yet, please run 'auditui configure'.")
         sys.exit(1)
 
     try:
@@ -31,9 +31,9 @@ def main() -> None:
     except Exception as exc:
         print(f"Authentication error: {exc}")
         if not AUTH_PATH.exists():
-            print("No configuration yet, please run 'auditui configure' to create it")
+            print("No configuration yet, please run 'auditui configure'.")
         else:
-            print("Please re-authenticate by running 'auditui configure'")
+            print("Please re-authenticate by running 'auditui configure'.")
         sys.exit(1)
 
     app = Auditui(auth=auth, client=client)
