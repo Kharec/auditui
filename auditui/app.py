@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import App, ComposeResult
-from textual.containers import Container
+from textual.containers import Container, Horizontal, ScrollableContainer
 from textual.events import Key
 from textual.screen import ModalScreen
 from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
@@ -34,24 +34,21 @@ class HelpScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Container(id="help_container"):
-            yield Static("Help - Key Bindings", id="help_title")
-            help_table = DataTable(id="help_table")
-            help_table.add_columns("Key", "Action")
-            help_table.show_header = True
-            help_table.zebra_stripes = False
-            help_table.cursor_type = "none"
-            bindings = self.app.BINDINGS
-            for binding in bindings:
-                if isinstance(binding, tuple):
-                    key, action, description = binding
-                else:
-                    key = binding.key
-                    description = binding.description
-                key_display = key.replace(
-                    "ctrl+", "^").replace("left", "←").replace("right", "→").replace("space", "Space")
-                help_table.add_row(f"[bold]{key_display}[/]", description)
-            yield help_table
-            yield Static("Press ? or Escape to close", id="help_footer")
+            yield Static("Key Bindings", id="help_title")
+            with ScrollableContainer(id="help_content"):
+                bindings = self.app.BINDINGS
+                for binding in bindings:
+                    if isinstance(binding, tuple):
+                        key, action, description = binding
+                    else:
+                        key = binding.key
+                        description = binding.description
+                    key_display = key.replace(
+                        "ctrl+", "^").replace("left", "←").replace("right", "→").replace("space", "Space").replace("enter", "Enter")
+                    with Horizontal(classes="help_row"):
+                        yield Static(f"[bold #f9e2af]{key_display}[/]", classes="help_key")
+                        yield Static(description, classes="help_action")
+            yield Static("Press [bold #f9e2af]?[/] or [bold #f9e2af]Escape[/] to close", id="help_footer")
 
     def action_dismiss(self) -> None:
         self.dismiss()
