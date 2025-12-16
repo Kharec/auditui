@@ -2,7 +2,6 @@
 """Auditui entrypoint."""
 
 import sys
-from pathlib import Path
 
 from auditui.app import Auditui
 from auditui.auth import authenticate
@@ -20,13 +19,13 @@ def main() -> None:
             print(f"Configuration error: {exc}")
             sys.exit(1)
         return
-    
+
     config_dir = AUTH_PATH.parent
-    
+
     if not config_dir.exists():
         print("No configuration yet, please run 'auditui configure' to create it")
         sys.exit(1)
-    
+
     try:
         auth, client = authenticate()
     except Exception as exc:
@@ -36,7 +35,7 @@ def main() -> None:
         else:
             print("Please re-authenticate by running 'auditui configure'")
         sys.exit(1)
-    
+
     app = Auditui(auth=auth, client=client)
     app.run()
 
