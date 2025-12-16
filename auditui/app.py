@@ -28,8 +28,9 @@ if TYPE_CHECKING:
 class Auditui(App):
     """Main application class for the Audible TUI app."""
 
+    theme = "textual-dark"
+
     BINDINGS = [
-        ("d", "toggle_dark", "Light/Dark mode"),
         ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/unfinished"),
@@ -195,12 +196,6 @@ class Auditui(App):
         unfinished_items = filter_unfinished_items(
             self.all_items, self.library_client)
         self._populate_table(unfinished_items)
-
-    def action_toggle_dark(self) -> None:
-        """Toggle between dark and light theme."""
-        self.theme = (
-            "textual-dark" if self.theme == "textual-light" else "textual-light"
-        )
 
     def action_sort(self) -> None:
         """Sort table by title, toggling direction on each press."""
