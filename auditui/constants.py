@@ -30,10 +30,10 @@ Header {
 Footer {
     background: #181825;
     color: #bac2de;
-    height: 1;
+    height: 2;
     padding: 0 1;
     scrollbar-size: 0 0;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: hidden;
 }
 
@@ -49,7 +49,7 @@ FooterKey.-grouped,
 Footer.-compact FooterKey {
     background: #181825;
     padding: 0;
-    margin: 0 2 0 0;
+    margin: 0 1 0 0;
 }
 
 FooterKey .footer-key--key {
