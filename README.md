@@ -36,7 +36,6 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 
 | Key          | Action                     |
 | ------------ | -------------------------- |
-| `d`          | Toggle dark/light mode     |
 | `n`          | Sort by name               |
 | `p`          | Sort by progress           |
 | `a`          | Show all/unfinished        |
