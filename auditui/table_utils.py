@@ -1,13 +1,16 @@
 """Utils for table operations."""
 
 import unicodedata
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from .constants import (
     AUTHOR_NAME_DISPLAY_LENGTH,
     AUTHOR_NAME_MAX_LENGTH,
     PROGRESS_COLUMN_INDEX,
 )
+
+if TYPE_CHECKING:
+    from .downloads import DownloadManager
 
 
 def create_title_sort_key(reverse: bool = False) -> tuple[Callable, bool]:
@@ -43,11 +46,11 @@ def truncate_author_name(author_names: str) -> str:
     return author_names
 
 
-def format_item_as_row(item: dict, library_client) -> tuple[str, str, str, str]:
+def format_item_as_row(item: dict, library_client, download_manager: "DownloadManager | None" = None) -> tuple[str, str, str, str, str]:
     """Format a library item into table row data.
 
     Returns:
-        Tuple of (title, author, runtime, progress) strings
+        Tuple of (title, author, runtime, progress, downloaded) strings
     """
     title = library_client.extract_title(item)
 
@@ -67,7 +70,13 @@ def format_item_as_row(item: dict, library_client) -> tuple[str, str, str, str]:
         else "0%"
     )
 
-    return (title, author_display, runtime_str, progress_str)
+    downloaded_str = ""
+    if download_manager:
+        asin = library_client.extract_asin(item)
+        if asin and download_manager.is_cached(asin):
+            downloaded_str = "✓"
+
+    return (title, author_display, runtime_str, progress_str, downloaded_str)
 
 
 def filter_unfinished_items(items: list[dict], library_client) -> list[dict]:
