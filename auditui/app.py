@@ -14,7 +14,12 @@ from .constants import *
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
-from .table_utils import create_progress_sort_key, create_title_sort_key
+from .table_utils import (
+    create_progress_sort_key,
+    create_title_sort_key,
+    filter_unfinished_items,
+    format_item_as_row,
+)
 
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
@@ -166,28 +171,9 @@ class Auditui(App):
             return
 
         for item in items:
-            title = self.library_client.extract_title(item)
-            author_names = self.library_client.extract_authors(item)
-            if author_names and len(author_names) > AUTHOR_NAME_MAX_LENGTH:
-                author_names = f"{author_names[:AUTHOR_NAME_DISPLAY_LENGTH]}..."
-            minutes = self.library_client.extract_runtime_minutes(item)
-            runtime_str = self.library_client.format_duration(
-                minutes, unit="minutes", default_none="Unknown length"
-            )
-            percent_complete = self.library_client.extract_progress_info(item)
-            progress_str = (
-                f"{percent_complete:.1f}%"
-                if percent_complete and percent_complete > 0
-                else "0%"
-            )
-
-            table.add_row(
-                title,
-                author_names or "Unknown",
-                runtime_str or "Unknown",
-                progress_str,
-                key=title,
-            )
+            title, author, runtime, progress = format_item_as_row(
+                item, self.library_client)
+            table.add_row(title, author, runtime, progress, key=title)
 
         self.current_items = items
         mode = "all" if self.show_all_mode else "unfinished"
@@ -206,9 +192,8 @@ class Auditui(App):
             return
 
         self.show_all_mode = False
-        unfinished_items = [
-            item for item in self.all_items if not self.library_client.is_finished(item)
-        ]
+        unfinished_items = filter_unfinished_items(
+            self.all_items, self.library_client)
         self._populate_table(unfinished_items)
 
     def action_toggle_dark(self) -> None:
