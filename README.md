@@ -45,6 +45,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 | `right`      | Seek forward 30 seconds    |
 | `ctrl+left`  | Go to the previous chapter |
 | `ctrl+right` | Go to the next chapter     |
+| `d`          | Download/delete from cache |
 | `q`          | Quit the application       |
 
 ## Roadmap
@@ -58,9 +59,9 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] add a control to jump 30s earlier/later
 - [x] add control to go to the previous/next chapter
 - [x] save/resume playback of a book from the last position, regardless of which device was used previously
-- [ ] mark a book as finished or unfinished
-- [ ] download/remove a book in the cache without having to play it
+- [x] download/remove a book in the cache without having to play it
 - [ ] increase/decrease reading speed
+- [ ] mark a book as finished or unfinished
 - [ ] get your stats in a separated pane
 - [ ] filter books on views
 - [ ] search in your book library
