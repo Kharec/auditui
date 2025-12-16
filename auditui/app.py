@@ -10,7 +10,7 @@ from textual.events import Key
 from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
 from textual.worker import get_current_worker
 
-from .constants import *
+from .constants import PROGRESS_COLUMN_INDEX, SEEK_SECONDS, TABLE_CSS, TABLE_COLUMNS
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
@@ -33,13 +33,14 @@ class Auditui(App):
     BINDINGS = [
         ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
-        ("a", "show_all", "All/unfinished"),
+        ("a", "show_all", "All/Unfinished"),
         ("enter", "play_selected", "Play"),
         ("space", "toggle_playback", "Pause/Resume"),
         ("left", "seek_backward", "-30s"),
         ("right", "seek_forward", "+30s"),
         ("ctrl+left", "previous_chapter", "Previous chapter"),
         ("ctrl+right", "next_chapter", "Next chapter"),
+        ("d", "toggle_download", "Download/Delete"),
         ("q", "quit", "Quit"),
     ]
 
@@ -172,13 +173,19 @@ class Auditui(App):
             return
 
         for item in items:
-            title, author, runtime, progress = format_item_as_row(
-                item, self.library_client)
-            table.add_row(title, author, runtime, progress, key=title)
+            title, author, runtime, progress, downloaded = format_item_as_row(
+                item, self.library_client, self.download_manager)
+            table.add_row(title, author, runtime,
+                          progress, downloaded, key=title)
 
         self.current_items = items
         mode = "all" if self.show_all_mode else "unfinished"
         self.update_status(f"Showing {len(items)} books ({mode})")
+
+    def _refresh_table(self) -> None:
+        """Refresh the table with current items."""
+        if self.current_items:
+            self._populate_table(self.current_items)
 
     def show_all(self) -> None:
         """Display all books in the table."""
@@ -330,6 +337,51 @@ class Auditui(App):
     def _save_position_periodically(self) -> None:
         """Periodically save playback position."""
         self.playback.update_position_if_needed()
+
+    def action_toggle_download(self) -> None:
+        """Toggle download/remove for the selected book."""
+        if not self.download_manager:
+            self.update_status(
+                "Not authenticated. Please restart and authenticate.")
+            return
+
+        table = self.query_one(DataTable)
+        if table.row_count == 0:
+            self.update_status("No books available")
+            return
+
+        cursor_row = table.cursor_row
+        if cursor_row >= len(self.current_items):
+            self.update_status("Invalid selection")
+            return
+
+        if not self.library_client:
+            self.update_status("Library client not available")
+            return
+
+        selected_item = self.current_items[cursor_row]
+        asin = self.library_client.extract_asin(selected_item)
+
+        if not asin:
+            self.update_status("Could not get ASIN for selected book")
+            return
+
+        self._toggle_download_async(asin)
+
+    @work(exclusive=True, thread=True)
+    def _toggle_download_async(self, asin: str) -> None:
+        """Toggle download/remove asynchronously."""
+        if not self.download_manager:
+            return
+
+        if self.download_manager.is_cached(asin):
+            self.download_manager.remove_cached(
+                asin, self._thread_status_update)
+        else:
+            self.download_manager.get_or_download(
+                asin, self._thread_status_update)
+
+        self.call_from_thread(self._refresh_table)
 
     @work(exclusive=True, thread=True)
     def _start_playback_async(self, asin: str) -> None:
