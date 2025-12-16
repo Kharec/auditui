@@ -84,6 +84,37 @@ class DownloadManager:
         except (OSError, ValueError, KeyError, AttributeError):
             return None
 
+    def get_cached_path(self, asin: str) -> Path | None:
+        """Get the cached file path for a book if it exists."""
+        title = self._get_name_from_asin(asin) or asin
+        safe_title = self._sanitize_filename(title)
+        local_path = self.cache_dir / f"{safe_title}.aax"
+        if local_path.exists() and local_path.stat().st_size >= MIN_FILE_SIZE:
+            return local_path
+        return None
+
+    def is_cached(self, asin: str) -> bool:
+        """Check if a book is already cached."""
+        return self.get_cached_path(asin) is not None
+
+    def remove_cached(self, asin: str, notify: StatusCallback | None = None) -> bool:
+        """Remove a cached book file."""
+        cached_path = self.get_cached_path(asin)
+        if not cached_path:
+            if notify:
+                notify("Book is not cached")
+            return False
+
+        try:
+            cached_path.unlink()
+            if notify:
+                notify(f"Removed from cache: {cached_path.name}")
+            return True
+        except OSError as exc:
+            if notify:
+                notify(f"Failed to remove cache: {exc}")
+            return False
+
     def _validate_download_url(self, url: str) -> bool:
         """Validate that the URL is a valid HTTP/HTTPS URL."""
         try:
