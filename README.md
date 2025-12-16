@@ -62,7 +62,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [ ] mark a book as finished or unfinished
 - [ ] download/remove a book in the cache without having to play it
 - [ ] increase/decrease reading speed
-- [ ] get your stats in a pane
+- [ ] get your stats in a separated pane
 - [ ] filter books on views
 - [ ] search in your book library
 
