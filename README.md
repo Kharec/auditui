@@ -1,14 +1,6 @@
 # auditui
 
-A terminal-based user interface (TUI) client for Audible, written in Python 3.
-
-Listen to your audiobooks or podcasts, browse your library, and more.
-
-## What it does and where are we
-
-The project offers a TUI interface for browsing your Audible library, listing your books with progress information. You can sort by progress or title, show all books, or show only unfinished books which is the default.
-
-You can also play a book by pressing `Enter` on a book in the list, and pause/resume the playback by pressing `Space`. `Left` and `Right` let you move 30 seconds backward/forward.
+A terminal-based user interface (TUI) client for Audible, written in Python 3 : listen to your audiobooks (even offline), browse and manage your library, and more!
 
 Currently, the only available theme is Catppuccin Mocha, following their [style guide](https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md), as it's my preferred theme across most of my tools.
 
@@ -36,6 +28,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 
 | Key          | Action                     |
 | ------------ | -------------------------- |
+| `?`          | Show help screen           |
 | `n`          | Sort by name               |
 | `p`          | Sort by progress           |
 | `a`          | Show all/unfinished        |
@@ -60,6 +53,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] add control to go to the previous/next chapter
 - [x] save/resume playback of a book from the last position, regardless of which device was used previously
 - [x] download/remove a book in the cache without having to play it
+- [x] add a help screen with all the keybindings
 - [ ] increase/decrease reading speed
 - [ ] mark a book as finished or unfinished
 - [ ] get your stats in a separated pane
