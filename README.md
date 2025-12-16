@@ -60,14 +60,20 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] add control to go to the previous/next chapter
 - [x] save/resume playback of a book from the last position, regardless of which device was used previously
 - [ ] mark a book as finished or unfinished
+- [ ] download/remove a book in the cache without having to play it
+- [ ] increase/decrease reading speed
+- [ ] get your stats in a pane
+- [ ] filter books on views
+- [ ] search in your book library
+
+And after that:
+
 - [ ] search the marketplace for books
 - [ ] add a book in your wishlist
-- [ ] get your listening stats from Audible
-- [ ] add multiple themes and theme selector
-- [ ] installation setup
 
 All of this, and of course:
 
+- [ ] installation setup
 - [ ] build a decent TUI interface using [Textual](https://textual.textualize.io/)
 - [ ] code cleanup / organization
 
