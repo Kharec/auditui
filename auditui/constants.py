@@ -9,7 +9,7 @@ DEFAULT_CODEC = "LC_128_44100_stereo"
 MIN_FILE_SIZE = 1024 * 1024
 DEFAULT_CHUNK_SIZE = 8192
 
-TABLE_COLUMNS = ("Title", "Author", "Length", "Progress")
+TABLE_COLUMNS = ("Title", "Author", "Length", "Progress", "Downloaded")
 
 AUTHOR_NAME_MAX_LENGTH = 40
 AUTHOR_NAME_DISPLAY_LENGTH = 37
