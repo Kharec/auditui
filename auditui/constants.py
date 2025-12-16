@@ -140,71 +140,97 @@ ProgressBar#progress_bar > .progress-bar--track {
 
 ProgressBar#progress_bar > .progress-bar--bar {
     background: #a6e3a1;
-    width: auto;
 }
 
 HelpScreen {
     align: center middle;
+    background: rgba(0, 0, 0, 0.7);
 }
 
 #help_container {
-    width: 60;
+    width: 70;
     height: auto;
-    max-height: 80%;
+    max-height: 85%;
+    min-height: 20;
     background: #1e1e2e;
-    border: solid #585b70;
-    padding: 1;
+    border: thick #89b4fa;
+    padding: 2;
 }
 
 #help_title {
     text-align: center;
     text-style: bold;
-    color: #cdd6f4;
-    margin-bottom: 1;
+    color: #89b4fa;
+    margin-bottom: 2;
     padding-bottom: 1;
     border-bottom: solid #585b70;
+    height: 3;
+    align: center middle;
 }
 
 #help_content {
     width: 100%;
-    height: auto;
-    padding: 1;
-}
-
-#help_table {
-    width: 100%;
-    height: auto;
-    background: #1e1e2e;
-    border: none;
+    height: 1fr;
+    padding: 1 0;
     margin: 1 0;
+    overflow-y: auto;
+    scrollbar-size: 0 1;
 }
 
-#help_table > .datatable--header {
+#help_content > .scrollbar--vertical {
+    background: #313244;
+}
+
+#help_content > .scrollbar--vertical > .scrollbar--track {
+    background: #181825;
+}
+
+#help_content > .scrollbar--vertical > .scrollbar--handle {
+    background: #585b70;
+}
+
+#help_content > .scrollbar--vertical > .scrollbar--handle:hover {
     background: #45475a;
-    color: #bac2de;
-    text-style: bold;
 }
 
-#help_table > .datatable--cursor {
-    background: transparent;
-}
-
-#help_table > .datatable--odd-row,
-#help_table > .datatable--even-row {
-    background: #1e1e2e;
-}
-
-#help_binding {
+.help_row {
+    height: 3;
+    margin: 0 0 1 0;
     padding: 0 1;
-    margin: 0;
+    background: #181825;
+    border: solid #313244;
+    align: left middle;
+}
+
+.help_row:hover {
+    background: #313244;
+    border: solid #45475a;
+}
+
+.help_key {
+    width: 20;
+    text-align: right;
+    padding: 0 2 0 0;
+    color: #f9e2af;
+    text-style: bold;
+    align: right middle;
+}
+
+.help_action {
+    width: 1fr;
+    text-align: left;
+    padding: 0 0 0 2;
     color: #cdd6f4;
+    align: left middle;
 }
 
 #help_footer {
     text-align: center;
     color: #bac2de;
-    margin-top: 1;
+    margin-top: 2;
     padding-top: 1;
     border-top: solid #585b70;
+    height: 3;
+    align: center middle;
 }
 """
