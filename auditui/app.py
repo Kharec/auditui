@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import App, ComposeResult
-from textual.binding import Binding
+from textual.containers import Container
 from textual.events import Key
+from textual.screen import ModalScreen
 from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
 from textual.worker import get_current_worker
 
@@ -26,6 +27,36 @@ if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
 
 
+class HelpScreen(ModalScreen):
+    """Help screen displaying all available keybindings."""
+
+    BINDINGS = [("escape", "dismiss", "Close"), ("?", "dismiss", "Close")]
+
+    def compose(self) -> ComposeResult:
+        with Container(id="help_container"):
+            yield Static("Help - Key Bindings", id="help_title")
+            help_table = DataTable(id="help_table")
+            help_table.add_columns("Key", "Action")
+            help_table.show_header = True
+            help_table.zebra_stripes = False
+            help_table.cursor_type = "none"
+            bindings = self.app.BINDINGS
+            for binding in bindings:
+                if isinstance(binding, tuple):
+                    key, action, description = binding
+                else:
+                    key = binding.key
+                    description = binding.description
+                key_display = key.replace(
+                    "ctrl+", "^").replace("left", "←").replace("right", "→").replace("space", "Space")
+                help_table.add_row(f"[bold]{key_display}[/]", description)
+            yield help_table
+            yield Static("Press ? or Escape to close", id="help_footer")
+
+    def action_dismiss(self) -> None:
+        self.dismiss()
+
+
 class Auditui(App):
     """Main application class for the Audible TUI app."""
 
@@ -33,6 +64,7 @@ class Auditui(App):
     SHOW_PALETTE = False
 
     BINDINGS = [
+        ("?", "show_help", "Help"),
         ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/Unfinished"),
@@ -292,6 +324,10 @@ class Auditui(App):
     def _no_playback_message(self) -> None:
         """Show message when no playback is active."""
         self.update_status("No playback active. Press Enter to play a book.")
+
+    def action_show_help(self) -> None:
+        """Show the help screen with all keybindings."""
+        self.push_screen(HelpScreen())
 
     def _check_playback_status(self) -> None:
         """Check if playback process has finished and update state accordingly."""
