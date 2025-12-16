@@ -142,4 +142,69 @@ ProgressBar#progress_bar > .progress-bar--bar {
     background: #a6e3a1;
     width: auto;
 }
+
+HelpScreen {
+    align: center middle;
+}
+
+#help_container {
+    width: 60;
+    height: auto;
+    max-height: 80%;
+    background: #1e1e2e;
+    border: solid #585b70;
+    padding: 1;
+}
+
+#help_title {
+    text-align: center;
+    text-style: bold;
+    color: #cdd6f4;
+    margin-bottom: 1;
+    padding-bottom: 1;
+    border-bottom: solid #585b70;
+}
+
+#help_content {
+    width: 100%;
+    height: auto;
+    padding: 1;
+}
+
+#help_table {
+    width: 100%;
+    height: auto;
+    background: #1e1e2e;
+    border: none;
+    margin: 1 0;
+}
+
+#help_table > .datatable--header {
+    background: #45475a;
+    color: #bac2de;
+    text-style: bold;
+}
+
+#help_table > .datatable--cursor {
+    background: transparent;
+}
+
+#help_table > .datatable--odd-row,
+#help_table > .datatable--even-row {
+    background: #1e1e2e;
+}
+
+#help_binding {
+    padding: 0 1;
+    margin: 0;
+    color: #cdd6f4;
+}
+
+#help_footer {
+    text-align: center;
+    color: #bac2de;
+    margin-top: 1;
+    padding-top: 1;
+    border-top: solid #585b70;
+}
 """
