@@ -17,7 +17,7 @@ This project uses [uv](https://github.com/astral-sh/uv) for dependency managemen
 $ uv sync
 
 # run the TUI
-$ uv run main.py
+$ uv run python -m auditui.cli
 ```
 
 (`stats.py` is a playground for the stats functionality)
