@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Auditui entrypoint."""
 
+import argparse
 import sys
+from importlib import metadata
+from importlib.metadata import PackageNotFoundError
+from pathlib import Path
+import tomllib
 
 from auditui.app import Auditui
 from auditui.auth import authenticate
@@ -11,7 +16,30 @@ from auditui.constants import AUTH_PATH
 
 def main() -> None:
     """Authenticate and launch the app."""
-    if len(sys.argv) > 1 and sys.argv[1] == "configure":
+    project_root = Path(__file__).resolve().parent.parent
+    pyproject_path = project_root / "pyproject.toml"
+    try:
+        version = metadata.version("auditui")
+    except PackageNotFoundError:
+        version = "unknown"
+        if pyproject_path.exists():
+            with pyproject_path.open("rb") as handle:
+                version = tomllib.load(handle).get(
+                    "project", {}).get("version", version)
+
+    parser = argparse.ArgumentParser(prog="auditui")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"auditui {version}",
+    )
+    subparsers = parser.add_subparsers(dest="command")
+    subparsers.add_parser("configure", help="Set up authentication")
+
+    args = parser.parse_args()
+
+    if args.command == "configure":
         try:
             configure()
             print("Configuration completed successfully.")
@@ -42,4 +70,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
