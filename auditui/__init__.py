@@ -1,2 +1,4 @@
-"""Auditui package providing the Audible TUI app components."""
+"""Auditui package"""
+
+__version__ = "0.1.0"
 
