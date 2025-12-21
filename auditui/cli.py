@@ -3,11 +3,8 @@
 
 import argparse
 import sys
-from importlib import metadata
-from importlib.metadata import PackageNotFoundError
-from pathlib import Path
-import tomllib
 
+from auditui import __version__
 from auditui.app import Auditui
 from auditui.auth import authenticate
 from auditui.configure import configure
@@ -16,23 +13,12 @@ from auditui.constants import AUTH_PATH
 
 def main() -> None:
     """Authenticate and launch the app."""
-    project_root = Path(__file__).resolve().parent.parent
-    pyproject_path = project_root / "pyproject.toml"
-    try:
-        version = metadata.version("auditui")
-    except PackageNotFoundError:
-        version = "unknown"
-        if pyproject_path.exists():
-            with pyproject_path.open("rb") as handle:
-                version = tomllib.load(handle).get(
-                    "project", {}).get("version", version)
-
     parser = argparse.ArgumentParser(prog="auditui")
     parser.add_argument(
         "-v",
         "--version",
         action="version",
-        version=f"auditui {version}",
+        version=f"auditui {__version__}",
     )
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("configure", help="Set up authentication")
