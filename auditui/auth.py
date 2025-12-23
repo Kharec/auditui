@@ -1,7 +1,6 @@
 """Authentication helpers for the Auditui app."""
 
 from pathlib import Path
-from typing import Tuple
 
 import audible
 
@@ -10,7 +9,7 @@ from .constants import AUTH_PATH
 
 def authenticate(
     auth_path: Path = AUTH_PATH,
-) -> Tuple[audible.Authenticator, audible.Client]:
+) -> tuple[audible.Authenticator, audible.Client]:
     """Authenticate with Audible and return authenticator and client."""
     if not auth_path.exists():
         raise FileNotFoundError(

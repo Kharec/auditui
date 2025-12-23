@@ -2,7 +2,6 @@
 
 from getpass import getpass
 from pathlib import Path
-from typing import Tuple
 
 import audible
 
@@ -11,7 +10,7 @@ from .constants import AUTH_PATH
 
 def configure(
     auth_path: Path = AUTH_PATH,
-) -> Tuple[audible.Authenticator, audible.Client]:
+) -> tuple[audible.Authenticator, audible.Client]:
     """Force re-authentication and save credentials."""
     if auth_path.exists():
         response = input(
@@ -37,4 +36,3 @@ def configure(
     print("Authentication successful!")
     audible_client = audible.Client(auth=authenticator)
     return authenticator, audible_client
-

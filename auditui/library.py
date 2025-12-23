@@ -1,6 +1,6 @@
 """Library helpers for fetching and formatting Audible data."""
 
-from typing import Callable, List
+from typing import Callable
 
 import audible
 
@@ -26,7 +26,7 @@ class LibraryClient:
         self, response_groups: str, on_progress: ProgressCallback | None = None
     ) -> list:
         """Fetch all pages of library items from the API."""
-        all_items: List[dict] = []
+        all_items: list[dict] = []
         page = 1
         page_size = 50
 
