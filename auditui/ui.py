@@ -23,7 +23,7 @@ class HelpScreen(ModalScreen):
                         key = binding.key
                         description = binding.description
                     key_display = key.replace(
-                        "ctrl+", "^").replace("left", "←").replace("right", "→").replace("space", "Space").replace("enter", "Enter")
+                        "ctrl+", "^").replace("left", "←").replace("right", "→").replace("up", "↑").replace("down", "↓").replace("space", "Space").replace("enter", "Enter")
                     with Horizontal(classes="help_row"):
                         yield Static(f"[bold #f9e2af]{key_display}[/]", classes="help_key")
                         yield Static(description, classes="help_action")
