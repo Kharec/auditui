@@ -43,6 +43,8 @@ class Auditui(App):
         ("right", "seek_forward", "+30s"),
         ("ctrl+left", "previous_chapter", "Previous chapter"),
         ("ctrl+right", "next_chapter", "Next chapter"),
+        ("up", "increase_speed", "Increase speed"),
+        ("down", "decrease_speed", "Decrease speed"),
         ("d", "toggle_download", "Download/Delete"),
         ("q", "quit", "Quit"),
     ]
@@ -123,6 +125,14 @@ class Auditui(App):
             elif event.key == "right":
                 event.prevent_default()
                 self.action_seek_forward()
+                return
+            elif event.key == "up":
+                event.prevent_default()
+                self.action_increase_speed()
+                return
+            elif event.key == "down":
+                event.prevent_default()
+                self.action_decrease_speed()
                 return
 
         if isinstance(self.focused, DataTable):
@@ -288,6 +298,16 @@ class Auditui(App):
     def action_previous_chapter(self) -> None:
         """Seek to the previous chapter."""
         if not self.playback.seek_to_previous_chapter():
+            self._no_playback_message()
+
+    def action_increase_speed(self) -> None:
+        """Increase playback speed."""
+        if not self.playback.increase_speed():
+            self._no_playback_message()
+
+    def action_decrease_speed(self) -> None:
+        """Decrease playback speed."""
+        if not self.playback.decrease_speed():
             self._no_playback_message()
 
     def _no_playback_message(self) -> None:
