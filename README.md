@@ -26,22 +26,23 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 
 ### Bindings
 
-| Key          | Action                     |
-| ------------ | -------------------------- |
-| `?`          | Show help screen           |
-| `n`          | Sort by name               |
-| `p`          | Sort by progress           |
-| `a`          | Show all/unfinished        |
-| `enter`      | Play the selected book     |
-| `space`      | Pause/resume the playback  |
-| `left`       | Seek backward 30 seconds   |
-| `right`      | Seek forward 30 seconds    |
-| `ctrl+left`  | Go to the previous chapter |
-| `ctrl+right` | Go to the next chapter     |
-| `up`         | Increase playback speed    |
-| `down`       | Decrease playback speed    |
-| `d`          | Download/delete from cache |
-| `q`          | Quit the application       |
+| Key          | Action                      |
+| ------------ | --------------------------- |
+| `?`          | Show help screen            |
+| `n`          | Sort by name                |
+| `p`          | Sort by progress            |
+| `a`          | Show all/unfinished         |
+| `enter`      | Play the selected book      |
+| `space`      | Pause/resume the playback   |
+| `left`       | Seek backward 30 seconds    |
+| `right`      | Seek forward 30 seconds     |
+| `ctrl+left`  | Go to the previous chapter  |
+| `ctrl+right` | Go to the next chapter      |
+| `up`         | Increase playback speed     |
+| `down`       | Decrease playback speed     |
+| `f`          | Mark as finished/unfinished |
+| `d`          | Download/delete from cache  |
+| `q`          | Quit the application        |
 
 ## Roadmap
 
@@ -57,7 +58,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] download/remove a book in the cache without having to play it
 - [x] add a help screen with all the keybindings
 - [x] increase/decrease reading speed
-- [ ] mark a book as finished or unfinished
+- [x] mark a book as finished or unfinished
 - [ ] get your stats in a separated pane
 - [ ] filter books on views
 - [ ] search in your book library
