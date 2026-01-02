@@ -16,6 +16,10 @@ from .media_info import load_media_info
 
 StatusCallback = Callable[[str], None]
 
+MIN_SPEED = 0.5
+MAX_SPEED = 2.0
+SPEED_INCREMENT = 0.5
+
 
 class PlaybackController:
     """Manage playback through ffplay."""
@@ -37,6 +41,7 @@ class PlaybackController:
         self.activation_hex: str | None = None
         self.last_save_time: float = 0.0
         self.position_save_interval: float = 30.0
+        self.playback_speed: float = 1.0
 
     def start(
         self,
@@ -44,6 +49,7 @@ class PlaybackController:
         activation_hex: str | None = None,
         status_callback: StatusCallback | None = None,
         start_position: float = 0.0,
+        speed: float | None = None,
     ) -> bool:
         """Start playing a local file using ffplay."""
         notify = status_callback or self.notify
@@ -57,12 +63,16 @@ class PlaybackController:
 
         self.activation_hex = activation_hex
         self.seek_offset = start_position
+        if speed is not None:
+            self.playback_speed = speed
 
         cmd = ["ffplay", "-nodisp", "-autoexit"]
         if activation_hex:
             cmd.extend(["-activation_bytes", activation_hex])
         if start_position > 0:
             cmd.extend(["-ss", str(start_position)])
+        if self.playback_speed != 1.0:
+            cmd.extend(["-af", f"atempo={self.playback_speed:.2f}"])
         cmd.append(str(path))
 
         try:
@@ -170,6 +180,7 @@ class PlaybackController:
         self.seek_offset = 0.0
         self.activation_hex = None
         self.last_save_time = 0.0
+        self.playback_speed = 1.0
 
     def _validate_playback_state(self, require_paused: bool) -> bool:
         """Validate playback state before pause/resume operations."""
@@ -253,7 +264,7 @@ class PlaybackController:
         notify(f"Starting playback of {local_path.name}...")
         self.current_asin = asin
         self.last_save_time = time.time()
-        return self.start(local_path, activation_hex, notify, start_position)
+        return self.start(local_path, activation_hex, notify, start_position, self.playback_speed)
 
     def toggle_playback(self) -> bool:
         """Toggle pause/resume state. Returns True if action was taken."""
@@ -309,11 +320,45 @@ class PlaybackController:
         self.paused_duration = 0.0
         self.pause_start_time = None
 
-    def _seek(self, seconds: float, direction: str) -> bool:
-        """Seek forward or backward by specified seconds."""
+    def _get_saved_state(self) -> dict:
+        """Get current playback state for saving."""
+        return {
+            "file_path": self.current_file_path,
+            "asin": self.current_asin,
+            "activation": self.activation_hex,
+            "duration": self.total_duration,
+            "chapters": self.chapters.copy(),
+            "speed": self.playback_speed,
+        }
+
+    def _restart_at_position(
+        self, new_position: float, new_speed: float | None = None, message: str | None = None
+    ) -> bool:
+        """Restart playback at a new position, optionally with new speed."""
         if not self.is_playing or not self.current_file_path:
             return False
 
+        was_paused = self.is_paused
+        saved_state = self._get_saved_state()
+        speed = new_speed if new_speed is not None else saved_state["speed"]
+
+        self._stop_process()
+        time.sleep(0.2)
+
+        if self.start(saved_state["file_path"], saved_state["activation"], self.notify, new_position, speed):
+            self.current_asin = saved_state["asin"]
+            self.total_duration = saved_state["duration"]
+            self.chapters = saved_state["chapters"]
+            if was_paused:
+                time.sleep(0.3)
+                self.pause()
+            if message:
+                self.notify(message)
+            return True
+        return False
+
+    def _seek(self, seconds: float, direction: str) -> bool:
+        """Seek forward or backward by specified seconds."""
         elapsed = self._get_current_elapsed()
         current_total_position = self.seek_offset + elapsed
 
@@ -329,28 +374,7 @@ class PlaybackController:
             new_position = max(0.0, current_total_position - seconds)
             message = f"Skipped backward {int(seconds)}s"
 
-        was_paused = self.is_paused
-        saved_state = {
-            "file_path": self.current_file_path,
-            "asin": self.current_asin,
-            "activation": self.activation_hex,
-            "duration": self.total_duration,
-            "chapters": self.chapters.copy(),
-        }
-
-        self._stop_process()
-        time.sleep(0.2)
-
-        if self.start(saved_state["file_path"], saved_state["activation"], self.notify, new_position):
-            self.current_asin = saved_state["asin"]
-            self.total_duration = saved_state["duration"]
-            self.chapters = saved_state["chapters"]
-            if was_paused:
-                time.sleep(0.3)
-                self.pause()
-            self.notify(message)
-            return True
-        return False
+        return self._restart_at_position(new_position, message=message)
 
     def seek_forward(self, seconds: float = 30.0) -> bool:
         """Seek forward by specified seconds. Returns True if action was taken."""
@@ -431,28 +455,7 @@ class PlaybackController:
             new_position = target_chapter["start_time"]
             message = f"Previous chapter: {target_chapter['title']}"
 
-        was_paused = self.is_paused
-        saved_state = {
-            "file_path": self.current_file_path,
-            "asin": self.current_asin,
-            "activation": self.activation_hex,
-            "duration": self.total_duration,
-            "chapters": self.chapters.copy(),
-        }
-
-        self._stop_process()
-        time.sleep(0.2)
-
-        if self.start(saved_state["file_path"], saved_state["activation"], self.notify, new_position):
-            self.current_asin = saved_state["asin"]
-            self.total_duration = saved_state["duration"]
-            self.chapters = saved_state["chapters"]
-            if was_paused:
-                time.sleep(0.3)
-                self.pause()
-            self.notify(message)
-            return True
-        return False
+        return self._restart_at_position(new_position, message=message)
 
     def seek_to_next_chapter(self) -> bool:
         """Seek to the next chapter. Returns True if action was taken."""
@@ -489,3 +492,22 @@ class PlaybackController:
         if current_time - self.last_save_time >= self.position_save_interval:
             self._save_current_position()
             self.last_save_time = current_time
+
+    def _change_speed(self, delta: float) -> bool:
+        """Change playback speed by delta amount. Returns True if action was taken."""
+        new_speed = max(MIN_SPEED, min(MAX_SPEED, self.playback_speed + delta))
+        if new_speed == self.playback_speed:
+            return False
+
+        elapsed = self._get_current_elapsed()
+        current_total_position = self.seek_offset + elapsed
+
+        return self._restart_at_position(current_total_position, new_speed, f"Speed: {new_speed:.2f}x")
+
+    def increase_speed(self) -> bool:
+        """Increase playback speed. Returns True if action was taken."""
+        return self._change_speed(SPEED_INCREMENT)
+
+    def decrease_speed(self) -> bool:
+        """Decrease playback speed. Returns True if action was taken."""
+        return self._change_speed(-SPEED_INCREMENT)
