@@ -45,6 +45,7 @@ class Auditui(App):
         ("ctrl+right", "next_chapter", "Next chapter"),
         ("up", "increase_speed", "Increase speed"),
         ("down", "decrease_speed", "Decrease speed"),
+        ("f", "toggle_finished", "Mark finished/unfinished"),
         ("d", "toggle_download", "Download/Delete"),
         ("q", "quit", "Quit"),
     ]
@@ -309,6 +310,60 @@ class Auditui(App):
         """Decrease playback speed."""
         if not self.playback.decrease_speed():
             self._no_playback_message()
+
+    def action_toggle_finished(self) -> None:
+        """Toggle finished/unfinished status for the selected book."""
+        if not self.library_client:
+            self.update_status("Library client not available")
+            return
+
+        table = self.query_one(DataTable)
+        if table.row_count == 0:
+            self.update_status("No books available")
+            return
+
+        cursor_row = table.cursor_row
+        if cursor_row >= len(self.current_items):
+            self.update_status("Invalid selection")
+            return
+
+        selected_item = self.current_items[cursor_row]
+        asin = self.library_client.extract_asin(selected_item)
+
+        if not asin:
+            self.update_status("Could not get ASIN for selected book")
+            return
+
+        self._toggle_finished_async(asin)
+
+    @work(exclusive=True, thread=True)
+    def _toggle_finished_async(self, asin: str) -> None:
+        """Toggle finished/unfinished status asynchronously."""
+        if not self.library_client:
+            return
+
+        selected_item = None
+        for item in self.current_items:
+            if self.library_client.extract_asin(item) == asin:
+                selected_item = item
+                break
+
+        if not selected_item:
+            return
+
+        is_currently_finished = self.library_client.is_finished(selected_item)
+
+        if is_currently_finished:
+            success = self.library_client.mark_as_unfinished(
+                asin, selected_item)
+            message = "Marked as unfinished" if success else "Failed to mark as unfinished"
+        else:
+            success = self.library_client.mark_as_finished(asin, selected_item)
+            message = "Marked as finished" if success else "Failed to mark as finished"
+
+        self.call_from_thread(self.update_status, message)
+        if success:
+            self.call_from_thread(self.fetch_library)
 
     def _no_playback_message(self) -> None:
         """Show message when no playback is active."""
