@@ -13,6 +13,7 @@ class LibraryClient:
 
     def __init__(self, client: audible.Client) -> None:
         self.client = client
+        self._saved_positions: dict[str, float] = {}
 
     def fetch_all_items(self, on_progress: ProgressCallback | None = None) -> list:
         """Fetch all library items from the API."""
@@ -175,9 +176,9 @@ class LibraryClient:
         except (OSError, ValueError, KeyError):
             return None
 
-    def save_last_position(self, asin: str, position_seconds: float) -> bool:
-        """Save the last playback position for a book."""
-        if position_seconds <= 0:
+    def _update_position(self, asin: str, position_seconds: float) -> bool:
+        """Update the playback position for a book."""
+        if position_seconds < 0:
             return False
 
         content_ref = self._get_content_reference(asin)
@@ -206,6 +207,12 @@ class LibraryClient:
         except (OSError, ValueError, KeyError):
             return False
 
+    def save_last_position(self, asin: str, position_seconds: float) -> bool:
+        """Save the last playback position for a book."""
+        if position_seconds <= 0:
+            return False
+        return self._update_position(asin, position_seconds)
+
     @staticmethod
     def format_duration(
         value: int | None, unit: str = "minutes", default_none: str | None = None
@@ -227,6 +234,62 @@ class LibraryClient:
             parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
 
         return " ".join(parts) if parts else default_none
+
+    def _get_total_duration(self, asin: str, item: dict | None = None) -> float | None:
+        """Get total duration in seconds, trying item data first, then API."""
+        if item:
+            duration = self._get_total_duration_from_item(item)
+            if duration:
+                return duration
+        return self._get_total_duration_from_api(asin)
+
+    def mark_as_finished(self, asin: str, item: dict | None = None) -> bool:
+        """Mark a book as finished (100% complete) by setting position near end."""
+        current_position = self.get_last_position(asin)
+        if current_position and current_position > 0:
+            self._saved_positions[asin] = current_position
+
+        total_duration_seconds = self._get_total_duration(asin, item)
+        if total_duration_seconds and total_duration_seconds > 0:
+            position_seconds = max(0, total_duration_seconds - 10)
+        else:
+            position_seconds = 999999
+
+        return self._update_position(asin, position_seconds)
+
+    def _get_total_duration_from_api(self, asin: str) -> float | None:
+        """Get total duration in seconds from API."""
+        try:
+            response = self.client.get(
+                path=f"1.0/content/{asin}/metadata",
+                response_groups="runtime",
+            )
+            content_metadata = response.get("content_metadata", {})
+            runtime = content_metadata.get("runtime", {})
+            if isinstance(runtime, dict):
+                runtime_ms = runtime.get("runtime_ms")
+                if runtime_ms:
+                    return float(runtime_ms) / 1000.0
+            return None
+        except (OSError, ValueError, KeyError):
+            return None
+
+    def mark_as_unfinished(self, asin: str, item: dict | None = None) -> bool:
+        """Mark a book as unfinished by restoring saved position."""
+        saved_position = self._saved_positions.pop(asin, None)
+        if saved_position is None:
+            saved_position = self.get_last_position(asin)
+            if saved_position is None or saved_position <= 0:
+                return False
+
+        return self._update_position(asin, saved_position)
+
+    def _get_total_duration_from_item(self, item: dict) -> float | None:
+        """Get total duration in seconds from library item data."""
+        runtime_minutes = self.extract_runtime_minutes(item)
+        if runtime_minutes:
+            return float(runtime_minutes * 60)
+        return None
 
     @staticmethod
     def format_time(seconds: float) -> str:
