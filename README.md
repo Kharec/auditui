@@ -38,6 +38,8 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 | `right`      | Seek forward 30 seconds    |
 | `ctrl+left`  | Go to the previous chapter |
 | `ctrl+right` | Go to the next chapter     |
+| `up`         | Increase playback speed    |
+| `down`       | Decrease playback speed    |
 | `d`          | Download/delete from cache |
 | `q`          | Quit the application       |
 
@@ -54,7 +56,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] save/resume playback of a book from the last position, regardless of which device was used previously
 - [x] download/remove a book in the cache without having to play it
 - [x] add a help screen with all the keybindings
-- [ ] increase/decrease reading speed
+- [x] increase/decrease reading speed
 - [ ] mark a book as finished or unfinished
 - [ ] get your stats in a separated pane
 - [ ] filter books on views
