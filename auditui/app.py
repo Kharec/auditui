@@ -6,11 +6,16 @@ from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import App, ComposeResult
-from textual.events import Key
+from textual.events import Key, Resize
 from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
 from textual.worker import get_current_worker
 
-from .constants import PROGRESS_COLUMN_INDEX, SEEK_SECONDS, TABLE_CSS, TABLE_COLUMNS
+from .constants import (
+    PROGRESS_COLUMN_INDEX,
+    SEEK_SECONDS,
+    TABLE_COLUMN_DEFS,
+    TABLE_CSS,
+)
 from .downloads import DownloadManager
 from .library import LibraryClient
 from .playback import PlaybackController
@@ -69,7 +74,6 @@ class Auditui(App):
         self.title_sort_reverse = False
         self.progress_sort_reverse = False
         self.title_column_key: ColumnKey | None = None
-        self.progress_column_key: ColumnKey | None = None
         self.progress_column_index = PROGRESS_COLUMN_INDEX
 
     def compose(self) -> ComposeResult:
@@ -86,10 +90,11 @@ class Auditui(App):
     def on_mount(self) -> None:
         """Initialize the table and start fetching library data."""
         table = self.query_one(DataTable)
-        table.add_columns(*TABLE_COLUMNS)
+        for column_name, _ratio in TABLE_COLUMN_DEFS:
+            table.add_column(column_name, width=1)
+        self.call_after_refresh(lambda: self._apply_column_widths(table))
         column_keys = list(table.columns.keys())
         self.title_column_key = column_keys[0]
-        self.progress_column_key = column_keys[3]
 
         if self.client:
             self.update_status("Fetching library...")
@@ -107,6 +112,15 @@ class Auditui(App):
         self.playback.stop()
         if self.download_manager:
             self.download_manager.close()
+
+    def on_resize(self, event: Resize) -> None:
+        """Keep table columns responsive to terminal width changes."""
+        del event
+        try:
+            table = self.query_one(DataTable)
+        except Exception:
+            return
+        self._apply_column_widths(table)
 
     def on_key(self, event: Key) -> None:
         """Handle key presses."""
@@ -148,6 +162,34 @@ class Auditui(App):
         """Update the status message in the UI."""
         status = self.query_one("#status", Static)
         status.update(message)
+
+    def _apply_column_widths(self, table: DataTable) -> None:
+        """Assign proportional column widths based on available space."""
+        if not table.columns:
+            return
+
+        column_keys = list(table.columns.keys())
+        ratios = [ratio for _, ratio in TABLE_COLUMN_DEFS]
+        total_ratio = sum(ratios) or len(column_keys)
+        available_width = table.size.width - 2 - (len(column_keys) - 1)
+        if available_width <= 0:
+            return
+
+        remaining = available_width
+        widths: list[int] = []
+        for ratio in ratios:
+            width = max(1, (available_width * ratio) // total_ratio)
+            widths.append(width)
+            remaining -= width
+
+        if remaining > 0:
+            widths[0] += remaining
+
+        for column_key, width in zip(column_keys, widths):
+            column = table.columns[column_key]
+            column.auto_width = False
+            column.width = width
+        table.refresh()
 
     def _thread_status_update(self, message: str) -> None:
         """Safely update status from worker threads."""
@@ -241,10 +283,6 @@ class Auditui(App):
             self.show_unfinished()
         else:
             self.show_all()
-
-    def action_show_unfinished(self) -> None:
-        """Show unfinished books."""
-        self.show_unfinished()
 
     def action_play_selected(self) -> None:
         """Start playing the selected book."""
