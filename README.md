@@ -59,20 +59,13 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] add a help screen with all the keybindings
 - [x] increase/decrease reading speed
 - [x] mark a book as finished or unfinished
+- [x] make ui responsive
 - [ ] get your stats in a separated pane
 - [ ] filter books on views
 - [ ] search in your book library
-
-And after that:
-
 - [ ] search the marketplace for books
 - [ ] add a book in your wishlist
-
-All of this, and of course:
-
 - [ ] installation setup
-- [ ] build a decent TUI interface using [Textual](https://textual.textualize.io/)
-- [ ] code cleanup / organization
 
 ## Auth / credentials
 
