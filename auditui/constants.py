@@ -154,22 +154,24 @@ HelpScreen {
 }
 
 #help_container {
-    width: 70;
+    width: 88%;
+    max-width: 120;
+    min-width: 48;
     height: auto;
-    max-height: 85%;
-    min-height: 20;
-    background: #1e1e2e;
-    border: thick #89b4fa;
-    padding: 2;
+    max-height: 90%;
+    min-height: 16;
+    background: #181a2a;
+    border: heavy #7aa2f7;
+    padding: 1 2;
 }
 
 #help_title {
     text-align: center;
     text-style: bold;
-    color: #89b4fa;
-    margin-bottom: 2;
+    color: #7aa2f7;
+    margin-bottom: 1;
     padding-bottom: 1;
-    border-bottom: solid #585b70;
+    border-bottom: solid #4b5165;
     height: 3;
     align: center middle;
 }
@@ -203,27 +205,28 @@ HelpScreen {
     height: 3;
     margin: 0 0 1 0;
     padding: 0 1;
-    background: #181825;
-    border: solid #313244;
+    background: #1b1f33;
+    border: tall #2b2f45;
     align: left middle;
 }
 
 .help_row:hover {
-    background: #313244;
-    border: solid #45475a;
+    background: #2a2f45;
+    border: tall #3b4160;
 }
 
 .help_key {
-    width: 20;
+    width: 22%;
+    min-width: 12;
     text-align: right;
-    padding: 0 2 0 0;
+    padding: 0 1 0 0;
     color: #f9e2af;
     text-style: bold;
     align: right middle;
 }
 
 .help_action {
-    width: 1fr;
+    width: 78%;
     text-align: left;
     padding: 0 0 0 2;
     color: #cdd6f4;
@@ -233,9 +236,9 @@ HelpScreen {
 #help_footer {
     text-align: center;
     color: #bac2de;
-    margin-top: 2;
+    margin-top: 1;
     padding-top: 1;
-    border-top: solid #585b70;
+    border-top: solid #4b5165;
     height: 3;
     align: center middle;
 }
