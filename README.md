@@ -20,8 +20,6 @@ $ uv sync
 $ uv run python -m auditui.cli
 ```
 
-(`stats.py` is a playground for the stats functionality)
-
 Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
 ### Bindings
