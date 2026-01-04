@@ -217,7 +217,7 @@ class LibraryClient:
     def format_duration(
         value: int | None, unit: str = "minutes", default_none: str | None = None
     ) -> str | None:
-        """Format duration value into a human-readable string."""
+        """Format duration value into a compact string."""
         if value is None or value <= 0:
             return default_none
 
@@ -227,13 +227,9 @@ class LibraryClient:
 
         hours, minutes = divmod(total_minutes, 60)
 
-        parts = []
-        if hours:
-            parts.append(f"{hours} hour{'s' if hours != 1 else ''}")
-        if minutes:
-            parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
-
-        return " ".join(parts) if parts else default_none
+        if hours > 0:
+            return f"{hours}h{minutes:02d}" if minutes else f"{hours}h"
+        return f"{minutes}m"
 
     def _get_total_duration(self, asin: str, item: dict | None = None) -> float | None:
         """Get total duration in seconds, trying item data first, then API."""
@@ -274,7 +270,7 @@ class LibraryClient:
         except (OSError, ValueError, KeyError):
             return None
 
-    def mark_as_unfinished(self, asin: str, item: dict | None = None) -> bool:
+    def mark_as_unfinished(self, asin: str) -> bool:
         """Mark a book as unfinished by restoring saved position."""
         saved_position = self._saved_positions.pop(asin, None)
         if saved_position is None:
