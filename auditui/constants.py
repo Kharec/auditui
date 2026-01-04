@@ -10,9 +10,9 @@ MIN_FILE_SIZE = 1024 * 1024
 DEFAULT_CHUNK_SIZE = 8192
 
 TABLE_COLUMN_DEFS = (
-    ("Title", 4),
-    ("Author", 3),
-    ("Length", 2),
+    ("Title", 2),
+    ("Author", 2),
+    ("Length", 1),
     ("Progress", 1),
     ("Downloaded", 1),
 )
@@ -24,128 +24,103 @@ SEEK_SECONDS = 30.0
 
 TABLE_CSS = """
 Screen {
-    background: #1e1e2e;
+    background: #141622;
 }
 
-Header {
-    background: #181825;
-    color: #cdd6f4;
+#top_bar {
+    background: #10131f;
+    color: #d5d9f0;
     text-style: bold;
-}
-
-Footer {
-    background: #181825;
-    color: #bac2de;
-    height: 2;
-    padding: 0 1;
-    scrollbar-size: 0 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-Footer > HorizontalGroup > KeyGroup,
-Footer > HorizontalGroup > KeyGroup.-compact {
+    height: 1;
     margin: 0;
     padding: 0;
-    background: #181825;
 }
 
-FooterKey,
-FooterKey.-grouped,
-Footer.-compact FooterKey {
-    background: #181825;
-    padding: 0;
-    margin: 0 1 0 0;
+#top_left,
+#top_center,
+#top_right {
+    width: 1fr;
+    padding: 0 1;
+    background: #10131f;
+    margin: 0;
 }
 
-FooterKey .footer-key--key {
-    color: #f9e2af;
-    background: #181825;
-    text-style: bold;
-    padding: 0 1 0 0;
+#top_left {
+    text-align: left;
 }
 
-FooterKey .footer-key--description {
-    color: #cdd6f4;
-    background: #181825;
-    padding: 0;
+#top_center {
+    text-align: center;
 }
 
-FooterKey:hover {
-    background: #313244;
-    color: #cdd6f4;
-}
-
-FooterKey:hover .footer-key--key,
-FooterKey:hover .footer-key--description {
-    background: #313244;
+#top_right {
+    text-align: right;
 }
 
 DataTable {
     height: 1fr;
-    background: #1e1e2e;
-    color: #cdd6f4;
-    border: solid #585b70;
+    background: #141622;
+    color: #d6dbf2;
+    border: solid #2b2f45;
+    scrollbar-size-horizontal: 0;
 }
 
 DataTable:focus {
-    border: solid #89b4fa;
+    border: solid #7aa2f7;
 }
 
 DataTable > .datatable--header {
-    background: #45475a;
-    color: #bac2de;
+    background: #1b2033;
+    color: #b9c3e3;
     text-style: bold;
 }
 
 DataTable > .datatable--cursor {
-    background: #313244;
-    color: #cdd6f4;
+    background: #232842;
+    color: #e6ebff;
 }
 
 DataTable > .datatable--odd-row {
-    background: #181825;
+    background: #121422;
 }
 
 DataTable > .datatable--even-row {
-    background: #1e1e2e;
+    background: #15182a;
 }
 
 Static {
     height: 1;
     text-align: center;
-    background: #181825;
-    color: #cdd6f4;
+    background: #10131f;
+    color: #c7cfe8;
 }
 
 Static#status {
-    color: #bac2de;
+    color: #b6bfdc;
 }
 
 Static#progress_info {
-    color: #89b4fa;
+    color: #7aa2f7;
     text-style: bold;
     margin: 0;
     padding: 0;
-    width: 100%;
 }
 
 ProgressBar#progress_bar {
     height: 1;
-    background: #181825;
+    background: #10131f;
     border: none;
     margin: 0;
     padding: 0 1;
-    width: 100%;
     align: center middle;
 }
 
 ProgressBar#progress_bar > .progress-bar--track {
-    background: #45475a;
+    background: #262a3f;
 }
 
 ProgressBar#progress_bar > .progress-bar--bar {
-    background: #a6e3a1;
+    background: #8bd5ca;
 }
 
 HelpScreen {
@@ -153,93 +128,69 @@ HelpScreen {
     background: rgba(0, 0, 0, 0.7);
 }
 
+HelpScreen Static {
+    background: transparent;
+}
+
 #help_container {
     width: 88%;
     max-width: 120;
     min-width: 48;
     height: auto;
-    max-height: 90%;
-    min-height: 16;
+    max-height: 80%;
+    min-height: 14;
     background: #181a2a;
     border: heavy #7aa2f7;
     padding: 1 2;
 }
 
 #help_title {
+    width: 100%;
+    height: 3;
     text-align: center;
     text-style: bold;
     color: #7aa2f7;
+    content-align: center middle;
     margin-bottom: 1;
-    padding-bottom: 1;
     border-bottom: solid #4b5165;
-    height: 3;
-    align: center middle;
 }
 
 #help_content {
     width: 100%;
-    height: 1fr;
-    padding: 1 0;
-    margin: 1 0;
-    overflow-y: auto;
-    scrollbar-size: 0 1;
-}
-
-#help_content > .scrollbar--vertical {
-    background: #313244;
-}
-
-#help_content > .scrollbar--vertical > .scrollbar--track {
-    background: #181825;
-}
-
-#help_content > .scrollbar--vertical > .scrollbar--handle {
-    background: #585b70;
-}
-
-#help_content > .scrollbar--vertical > .scrollbar--handle:hover {
-    background: #45475a;
-}
-
-.help_row {
-    height: 3;
+    height: auto;
+    padding: 0;
     margin: 0 0 1 0;
+}
+
+.help_list {
+    width: 1fr;
+    height: auto;
+    background: transparent;
     padding: 0 1;
+    scrollbar-size: 0 0;
+}
+
+.help_list > ListItem {
     background: #1b1f33;
-    border: tall #2b2f45;
-    align: left middle;
+    padding: 0 1;
 }
 
-.help_row:hover {
+.help_list > ListItem:hover {
     background: #2a2f45;
-    border: tall #3b4160;
 }
 
-.help_key {
-    width: 22%;
-    min-width: 12;
-    text-align: right;
-    padding: 0 1 0 0;
-    color: #f9e2af;
-    text-style: bold;
-    align: right middle;
-}
-
-.help_action {
-    width: 78%;
-    text-align: left;
-    padding: 0 0 0 2;
-    color: #cdd6f4;
-    align: left middle;
+.help_list > ListItem > Label {
+    width: 100%;
+    padding: 0;
 }
 
 #help_footer {
+    width: 100%;
+    height: 3;
     text-align: center;
+    content-align: center middle;
     color: #bac2de;
     margin-top: 1;
-    padding-top: 1;
     border-top: solid #4b5165;
-    height: 3;
-    align: center middle;
 }
 """
