@@ -6,10 +6,12 @@ from typing import TYPE_CHECKING
 
 from textual import work
 from textual.app import App, ComposeResult
+from textual.containers import Horizontal
 from textual.events import Key, Resize
-from textual.widgets import DataTable, Footer, Header, ProgressBar, Static
+from textual.widgets import DataTable, ProgressBar, Static
 from textual.worker import get_current_worker
 
+from . import __version__
 from .constants import (
     PROGRESS_COLUMN_INDEX,
     SEEK_SECONDS,
@@ -77,7 +79,12 @@ class Auditui(App):
         self.progress_column_index = PROGRESS_COLUMN_INDEX
 
     def compose(self) -> ComposeResult:
-        yield Header()
+        yield Horizontal(
+            Static("? Help", id="top_left"),
+            Static(f"Auditui v{__version__}", id="top_center"),
+            Static("q Quit", id="top_right"),
+            id="top_bar",
+        )
         yield Static("Loading...", id="status")
         table: DataTable = DataTable()
         table.zebra_stripes = True
@@ -85,7 +92,6 @@ class Auditui(App):
         yield table
         yield Static("", id="progress_info")
         yield ProgressBar(id="progress_bar", show_eta=False, show_percentage=False, total=100)
-        yield Footer(show_command_palette=False)
 
     def on_mount(self) -> None:
         """Initialize the table and start fetching library data."""
@@ -161,6 +167,7 @@ class Auditui(App):
     def update_status(self, message: str) -> None:
         """Update the status message in the UI."""
         status = self.query_one("#status", Static)
+        status.display = True
         status.update(message)
 
     def _apply_column_widths(self, table: DataTable) -> None:
@@ -171,19 +178,19 @@ class Auditui(App):
         column_keys = list(table.columns.keys())
         ratios = [ratio for _, ratio in TABLE_COLUMN_DEFS]
         total_ratio = sum(ratios) or len(column_keys)
-        available_width = table.size.width - 2 - (len(column_keys) - 1)
+        content_width = table.scrollable_content_region.width
+        available_width = content_width
         if available_width <= 0:
             return
 
-        remaining = available_width
         widths: list[int] = []
         for ratio in ratios:
             width = max(1, (available_width * ratio) // total_ratio)
             widths.append(width)
-            remaining -= width
 
-        if remaining > 0:
-            widths[0] += remaining
+        remainder = available_width - sum(widths)
+        for i in range(remainder):
+            widths[i % len(widths)] += 1
 
         for column_key, width in zip(column_keys, widths):
             column = table.columns[column_key]
@@ -235,8 +242,8 @@ class Auditui(App):
                           progress, downloaded, key=title)
 
         self.current_items = items
-        mode = "all" if self.show_all_mode else "unfinished"
-        self.update_status(f"Showing {len(items)} books ({mode})")
+        status = self.query_one("#status", Static)
+        status.display = False
 
     def _refresh_table(self) -> None:
         """Refresh the table with current items."""
@@ -392,8 +399,7 @@ class Auditui(App):
         is_currently_finished = self.library_client.is_finished(selected_item)
 
         if is_currently_finished:
-            success = self.library_client.mark_as_unfinished(
-                asin, selected_item)
+            success = self.library_client.mark_as_unfinished(asin)
             message = "Marked as unfinished" if success else "Failed to mark as unfinished"
         else:
             success = self.library_client.mark_as_finished(asin, selected_item)
