@@ -1,9 +1,9 @@
 """UI components for the Auditui application."""
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, ScrollableContainer
+from textual.containers import Container, Horizontal
 from textual.screen import ModalScreen
-from textual.widgets import Static
+from textual.widgets import Label, ListItem, ListView, Static
 
 
 KEY_DISPLAY_MAP = {
@@ -17,6 +17,7 @@ KEY_DISPLAY_MAP = {
 }
 
 KEY_COLOR = "#f9e2af"
+DESC_COLOR = "#cdd6f4"
 
 
 class HelpScreen(ModalScreen):
@@ -42,17 +43,34 @@ class HelpScreen(ModalScreen):
             description = binding.description
         return key, description
 
+    def _make_item(self, binding: tuple | object) -> ListItem:
+        """Create a ListItem for a single binding."""
+        key, description = self._parse_binding(binding)
+        key_display = self._format_key_display(key)
+        text = f"[bold {KEY_COLOR}]{key_display:>12}[/]  [{DESC_COLOR}]{description}[/]"
+        return ListItem(Label(text))
+
     def compose(self) -> ComposeResult:
+        bindings = list(self.app.BINDINGS)
+        mid = (len(bindings) + 1) // 2
+        left_bindings = bindings[:mid]
+        right_bindings = bindings[mid:]
+
         with Container(id="help_container"):
             yield Static("Key Bindings", id="help_title")
-            with ScrollableContainer(id="help_content"):
-                for binding in self.app.BINDINGS:
-                    key, description = self._parse_binding(binding)
-                    key_display = self._format_key_display(key)
-                    with Horizontal(classes="help_row"):
-                        yield Static(f"[bold {KEY_COLOR}]{key_display}[/]", classes="help_key")
-                        yield Static(description, classes="help_action")
-            yield Static(f"Press [bold {KEY_COLOR}]?[/] or [bold {KEY_COLOR}]Escape[/] to close", id="help_footer")
+            with Horizontal(id="help_content"):
+                yield ListView(
+                    *[self._make_item(b) for b in left_bindings],
+                    classes="help_list",
+                )
+                yield ListView(
+                    *[self._make_item(b) for b in right_bindings],
+                    classes="help_list",
+                )
+            yield Static(
+                f"Press [bold {KEY_COLOR}]?[/] or [bold {KEY_COLOR}]Escape[/] to close",
+                id="help_footer",
+            )
 
     def action_dismiss(self) -> None:
         self.dismiss()
