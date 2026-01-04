@@ -1,11 +1,12 @@
 """Configuration helpers for the Auditui app."""
 
+import json
 from getpass import getpass
 from pathlib import Path
 
 import audible
 
-from .constants import AUTH_PATH
+from .constants import AUTH_PATH, CONFIG_PATH
 
 
 def configure(
@@ -33,6 +34,11 @@ def configure(
 
     auth_path.parent.mkdir(parents=True, exist_ok=True)
     authenticator.to_file(str(auth_path))
+
+    config = {"email": email}
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(config, f)
+
     print("Authentication successful!")
     audible_client = audible.Client(auth=authenticator)
     return authenticator, audible_client
