@@ -3,6 +3,7 @@
 from pathlib import Path
 
 AUTH_PATH = Path.home() / ".config" / "auditui" / "auth.json"
+CONFIG_PATH = Path.home() / ".config" / "auditui" / "config.json"
 CACHE_DIR = Path.home() / ".cache" / "auditui" / "books"
 DOWNLOAD_URL = "https://cde-ta-g7g.amazon.com/FionaCDEServiceEngine/FSDownloadContent"
 DEFAULT_CODEC = "LC_128_44100_stereo"
@@ -130,6 +131,45 @@ HelpScreen {
 
 HelpScreen Static {
     background: transparent;
+}
+
+StatsScreen {
+    align: center middle;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+StatsScreen Static {
+    background: transparent;
+}
+
+StatsScreen #help_container {
+    width: auto;
+    min-width: 55;
+    max-width: 70;
+}
+
+StatsScreen #help_content {
+    align: center middle;
+    width: 100%;
+}
+
+StatsScreen .help_list {
+    width: 100%;
+}
+
+StatsScreen .help_list > ListItem {
+    background: transparent;
+    height: 1;
+}
+
+StatsScreen .help_list > ListItem:hover {
+    background: #232842;
+}
+
+StatsScreen .help_list > ListItem > Label {
+    width: 100%;
+    text-align: left;
+    padding-left: 2;
 }
 
 #help_container {
