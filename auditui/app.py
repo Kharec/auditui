@@ -27,7 +27,7 @@ from .table_utils import (
     filter_unfinished_items,
     format_item_as_row,
 )
-from .ui import HelpScreen
+from .ui import HelpScreen, StatsScreen
 
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
@@ -41,6 +41,7 @@ class Auditui(App):
 
     BINDINGS = [
         ("?", "show_help", "Help"),
+        ("s", "show_stats", "Stats"),
         ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/Unfinished"),
@@ -416,6 +417,10 @@ class Auditui(App):
     def action_show_help(self) -> None:
         """Show the help screen with all keybindings."""
         self.push_screen(HelpScreen())
+
+    def action_show_stats(self) -> None:
+        """Show the stats screen with listening statistics."""
+        self.push_screen(StatsScreen())
 
     def _check_playback_status(self) -> None:
         """Check if playback process has finished and update state accordingly."""
