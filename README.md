@@ -42,6 +42,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 | `down`       | Decrease playback speed     |
 | `f`          | Mark as finished/unfinished |
 | `d`          | Download/delete from cache  |
+| `s`          | Show stats screen           |
 | `q`          | Quit the application        |
 
 ## Roadmap
@@ -60,7 +61,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] increase/decrease reading speed
 - [x] mark a book as finished or unfinished
 - [x] make ui responsive
-- [ ] get your stats in a separated pane
+- [x] get your stats in a separated pane
 - [ ] filter books on views
 - [ ] search in your book library
 - [ ] search the marketplace for books
