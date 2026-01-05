@@ -233,4 +233,45 @@ StatsScreen .help_list > ListItem > Label {
     margin-top: 1;
     border-top: solid #4b5165;
 }
+
+FilterScreen {
+    align: center middle;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+FilterScreen Static {
+    background: transparent;
+}
+
+#filter_container {
+    width: 60;
+    height: auto;
+    background: #181a2a;
+    border: heavy #7aa2f7;
+    padding: 1 2;
+}
+
+#filter_title {
+    width: 100%;
+    height: 2;
+    text-align: center;
+    text-style: bold;
+    color: #7aa2f7;
+    content-align: center middle;
+    margin-bottom: 1;
+}
+
+#filter_input {
+    width: 100%;
+    margin: 1 0;
+}
+
+#filter_footer {
+    width: 100%;
+    height: 2;
+    text-align: center;
+    content-align: center middle;
+    color: #bac2de;
+    margin-top: 1;
+}
 """
