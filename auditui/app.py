@@ -55,7 +55,7 @@ class Auditui(App):
         ("ctrl+right", "next_chapter", "Next chapter"),
         ("up", "increase_speed", "Increase speed"),
         ("down", "decrease_speed", "Decrease speed"),
-        ("f", "toggle_finished", "Mark finished/unfinished"),
+        ("f", "toggle_finished", "Mark finished"),
         ("d", "toggle_download", "Download/Delete"),
         ("q", "quit", "Quit"),
     ]
@@ -412,6 +412,10 @@ class Auditui(App):
 
         self.call_from_thread(self.update_status, message)
         if success:
+            if self.download_manager and self.download_manager.is_cached(asin):
+                self.download_manager.remove_cached(
+                    asin, notify=self._thread_status_update
+                )
             self.call_from_thread(self.fetch_library)
 
     def _no_playback_message(self) -> None:
