@@ -60,10 +60,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] mark a book as finished or unfinished
 - [x] make ui responsive
 - [x] get your stats in a separated pane
-- [ ] filter books on views
-- [ ] search in your book library
-- [ ] search the marketplace for books
-- [ ] add a book in your wishlist
+- [ ] search/filter within your library
 - [ ] installation setup
 
 ## Auth / credentials
