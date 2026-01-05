@@ -47,6 +47,7 @@ class Auditui(App):
         ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/Unfinished"),
+        ("r", "refresh", "Refresh"),
         ("enter", "play_selected", "Play"),
         ("space", "toggle_playback", "Pause/Resume"),
         ("left", "seek_backward", "-30s"),
@@ -227,7 +228,10 @@ class Auditui(App):
         self._search_text_cache.clear()
         self._prime_search_cache(items)
         self.update_status(f"Loaded {len(items)} books")
-        self.show_unfinished()
+        if self.show_all_mode:
+            self.show_all()
+        else:
+            self.show_unfinished()
 
     def on_library_error(self, error: str) -> None:
         """Handle library fetch error."""
@@ -294,6 +298,14 @@ class Auditui(App):
             self.show_unfinished()
         else:
             self.show_all()
+
+    def action_refresh(self) -> None:
+        """Refresh the library data from the API."""
+        if not self.client:
+            self.update_status("Not authenticated. Cannot refresh.")
+            return
+        self.update_status("Refreshing library...")
+        self.fetch_library()
 
     def action_play_selected(self) -> None:
         """Start playing the selected book."""
