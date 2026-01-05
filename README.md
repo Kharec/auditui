@@ -40,6 +40,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 | `down`       | Decrease playback speed    |
 | `f`          | Mark as finished           |
 | `d`          | Download/delete from cache |
+| `r`          | Refresh view               |
 | `s`          | Show stats screen          |
 | `/`          | Filter library             |
 | `q`          | Quit the application       |
