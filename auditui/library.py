@@ -13,7 +13,6 @@ class LibraryClient:
 
     def __init__(self, client: audible.Client) -> None:
         self.client = client
-        self._saved_positions: dict[str, float] = {}
 
     def fetch_all_items(self, on_progress: ProgressCallback | None = None) -> list:
         """Fetch all library items from the API."""
@@ -231,61 +230,63 @@ class LibraryClient:
             return f"{hours}h{minutes:02d}" if minutes else f"{hours}h"
         return f"{minutes}m"
 
-    def _get_total_duration(self, asin: str, item: dict | None = None) -> float | None:
-        """Get total duration in seconds, trying item data first, then API."""
-        if item:
-            duration = self._get_total_duration_from_item(item)
-            if duration:
-                return duration
-        return self._get_total_duration_from_api(asin)
-
     def mark_as_finished(self, asin: str, item: dict | None = None) -> bool:
-        """Mark a book as finished (100% complete) by setting position near end."""
-        current_position = self.get_last_position(asin)
-        if current_position and current_position > 0:
-            self._saved_positions[asin] = current_position
+        """Mark a book as finished by setting position to the end."""
+        total_ms = self._get_runtime_ms(asin, item)
+        if not total_ms:
+            return False
 
-        total_duration_seconds = self._get_total_duration(asin, item)
-        if total_duration_seconds and total_duration_seconds > 0:
-            position_seconds = max(0, total_duration_seconds - 10)
-        else:
-            position_seconds = 999999
+        position_ms = total_ms
+        acr = self._get_acr(asin)
+        if not acr:
+            return False
 
-        return self._update_position(asin, position_seconds)
+        try:
+            self.client.put(
+                path=f"1.0/lastpositions/{asin}",
+                body={"asin": asin, "acr": acr, "position_ms": position_ms},
+            )
+            if item:
+                item["is_finished"] = True
+                listening_status = item.get("listening_status", {})
+                if isinstance(listening_status, dict):
+                    listening_status["is_finished"] = True
+            return True
+        except Exception:
+            return False
 
-    def _get_total_duration_from_api(self, asin: str) -> float | None:
-        """Get total duration in seconds from API."""
+    def _get_runtime_ms(self, asin: str, item: dict | None = None) -> int | None:
+        """Get total runtime in milliseconds."""
+        if item:
+            runtime_min = self.extract_runtime_minutes(item)
+            if runtime_min:
+                return runtime_min * 60 * 1000
+
         try:
             response = self.client.get(
                 path=f"1.0/content/{asin}/metadata",
-                response_groups="runtime",
+                response_groups="chapter_info",
             )
-            content_metadata = response.get("content_metadata", {})
-            runtime = content_metadata.get("runtime", {})
-            if isinstance(runtime, dict):
-                runtime_ms = runtime.get("runtime_ms")
-                if runtime_ms:
-                    return float(runtime_ms) / 1000.0
-            return None
-        except (OSError, ValueError, KeyError):
+            chapter_info = response.get(
+                "content_metadata", {}).get("chapter_info", {})
+            return chapter_info.get("runtime_length_ms")
+        except Exception:
             return None
 
-    def mark_as_unfinished(self, asin: str) -> bool:
-        """Mark a book as unfinished by restoring saved position."""
-        saved_position = self._saved_positions.pop(asin, None)
-        if saved_position is None:
-            saved_position = self.get_last_position(asin)
-            if saved_position is None or saved_position <= 0:
-                return False
-
-        return self._update_position(asin, saved_position)
-
-    def _get_total_duration_from_item(self, item: dict) -> float | None:
-        """Get total duration in seconds from library item data."""
-        runtime_minutes = self.extract_runtime_minutes(item)
-        if runtime_minutes:
-            return float(runtime_minutes * 60)
-        return None
+    def _get_acr(self, asin: str) -> str | None:
+        """Get ACR token needed for position updates."""
+        try:
+            response = self.client.post(
+                path=f"1.0/content/{asin}/licenserequest",
+                body={
+                    "response_groups": "content_reference",
+                    "consumption_type": "Download",
+                    "drm_type": "Adrm",
+                },
+            )
+            return response.get("content_license", {}).get("acr")
+        except Exception:
+            return None
 
     @staticmethod
     def format_time(seconds: float) -> str:
