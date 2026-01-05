@@ -27,7 +27,7 @@ from .table_utils import (
     filter_unfinished_items,
     format_item_as_row,
 )
-from .ui import HelpScreen, StatsScreen
+from .ui import FilterScreen, HelpScreen, StatsScreen
 
 if TYPE_CHECKING:
     from textual.widgets._data_table import ColumnKey
@@ -42,6 +42,8 @@ class Auditui(App):
     BINDINGS = [
         ("?", "show_help", "Help"),
         ("s", "show_stats", "Stats"),
+        ("/", "filter", "Filter"),
+        ("escape", "clear_filter", "Clear filter"),
         ("n", "sort", "Sort by name"),
         ("p", "sort_by_progress", "Sort by progress"),
         ("a", "show_all", "All/Unfinished"),
@@ -73,7 +75,9 @@ class Auditui(App):
 
         self.all_items: list[dict] = []
         self.current_items: list[dict] = []
+        self._search_text_cache: dict[int, str] = {}
         self.show_all_mode = False
+        self.filter_text = ""
         self.title_sort_reverse = False
         self.progress_sort_reverse = False
         self.title_column_key: ColumnKey | None = None
@@ -220,6 +224,8 @@ class Auditui(App):
     def on_library_loaded(self, items: list[dict]) -> None:
         """Handle successful library load."""
         self.all_items = items
+        self._search_text_cache.clear()
+        self._prime_search_cache(items)
         self.update_status(f"Loaded {len(items)} books")
         self.show_unfinished()
 
@@ -256,17 +262,14 @@ class Auditui(App):
         if not self.all_items:
             return
         self.show_all_mode = True
-        self._populate_table(self.all_items)
+        self._refresh_filtered_view()
 
     def show_unfinished(self) -> None:
         """Display only unfinished books in the table."""
         if not self.all_items or not self.library_client:
             return
-
         self.show_all_mode = False
-        unfinished_items = filter_unfinished_items(
-            self.all_items, self.library_client)
-        self._populate_table(unfinished_items)
+        self._refresh_filtered_view()
 
     def action_sort(self) -> None:
         """Sort table by title, toggling direction on each press."""
@@ -421,6 +424,80 @@ class Auditui(App):
     def action_show_stats(self) -> None:
         """Show the stats screen with listening statistics."""
         self.push_screen(StatsScreen())
+
+    def action_filter(self) -> None:
+        """Show the filter screen to search the library."""
+        self.push_screen(
+            FilterScreen(
+                self.filter_text,
+                on_change=self._apply_filter,
+            ),
+            self._apply_filter,
+        )
+
+    def action_clear_filter(self) -> None:
+        """Clear the current filter if active."""
+        if self.filter_text:
+            self.filter_text = ""
+            self._refresh_filtered_view()
+            self.update_status("Filter cleared")
+
+    def _apply_filter(self, filter_text: str) -> None:
+        """Apply the filter to the library."""
+        self.filter_text = filter_text
+        self._refresh_filtered_view()
+
+    def _refresh_filtered_view(self) -> None:
+        """Refresh the table with current filter and view mode."""
+        if not self.all_items:
+            return
+
+        items = self.all_items
+
+        if self.filter_text:
+            filter_lower = self.filter_text.lower()
+            items = [
+                item for item in items
+                if filter_lower in self._get_search_text(item)
+            ]
+            self._populate_table(items)
+            self.update_status(
+                f"Filter: '{self.filter_text}' ({len(items)} books)")
+            return
+
+        if not self.show_all_mode and self.library_client:
+            items = filter_unfinished_items(items, self.library_client)
+
+        self._populate_table(items)
+
+    def _get_search_text(self, item: dict) -> str:
+        """Return cached search text for filtering."""
+        cache_key = id(item)
+        cached = self._search_text_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        title = ""
+        authors = ""
+        if self.library_client:
+            title = self.library_client.extract_title(item)
+            authors = self.library_client.extract_authors(item)
+        else:
+            title = item.get("title", "")
+            authors = ", ".join(
+                a.get("name", "")
+                for a in item.get("authors", [])
+                if isinstance(a, dict) and a.get("name")
+            )
+
+        search_text = f"{title} {authors}".lower()
+        self._search_text_cache[cache_key] = search_text
+        return search_text
+
+    def _prime_search_cache(self, items: list[dict]) -> None:
+        """Precompute search text for a list of items."""
+        for item in items:
+            self._get_search_text(item)
 
     def _check_playback_status(self) -> None:
         """Check if playback process has finished and update state accordingly."""
