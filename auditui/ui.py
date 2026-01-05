@@ -2,12 +2,13 @@
 
 import json
 from datetime import date, datetime
-from typing import Any, Protocol, TYPE_CHECKING, cast
+from typing import Any, Callable, Protocol, TYPE_CHECKING, cast
 
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Label, ListItem, ListView, Static
+from textual.timer import Timer
+from textual.widgets import Input, Label, ListItem, ListView, Static
 
 from .constants import AUTH_PATH, CONFIG_PATH
 
@@ -37,7 +38,7 @@ KEY_COLOR = "#f9e2af"
 DESC_COLOR = "#cdd6f4"
 
 
-class AppContextMixin:
+class AppContextMixin(ModalScreen):
     """Mixin to provide a typed app accessor."""
 
     def _app(self) -> _AppContext:
@@ -299,6 +300,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
                 )
         except Exception:
             return None
+        return None
 
     def _get_email_from_config(self, app: _AppContext) -> str | None:
         """Extract email from the config file."""
@@ -313,6 +315,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
                     )
         except Exception:
             return None
+        return None
 
     def _get_email_from_auth_file(self, app: _AppContext) -> str | None:
         """Extract email from the auth file."""
@@ -328,6 +331,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
                     )
         except Exception:
             return None
+        return None
 
     def _get_email_from_account_info(self, app: _AppContext) -> str | None:
         """Extract email from the account info API."""
@@ -352,6 +356,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
                     )
         except Exception:
             return None
+        return None
 
     def _first_email(self, *values: str | None) -> str | None:
         """Return the first non-empty, non-Unknown email value."""
@@ -509,3 +514,59 @@ class StatsScreen(AppContextMixin, ModalScreen):
 
     async def action_dismiss(self, result: Any | None = None) -> None:
         await self.dismiss(result)
+
+
+class FilterScreen(ModalScreen[str]):
+    """Filter screen for searching the library."""
+
+    BINDINGS = [("escape", "cancel", "Cancel")]
+
+    def __init__(
+        self,
+        initial_filter: str = "",
+        on_change: Callable[[str], None] | None = None,
+        debounce_seconds: float = 0.2,
+    ) -> None:
+        super().__init__()
+        self._initial_filter = initial_filter
+        self._on_change = on_change
+        self._debounce_seconds = debounce_seconds
+        self._debounce_timer: Timer | None = None
+
+    def compose(self) -> ComposeResult:
+        with Container(id="filter_container"):
+            yield Static("Filter Library", id="filter_title")
+            yield Input(
+                value=self._initial_filter,
+                placeholder="Type to filter by title or author...",
+                id="filter_input",
+            )
+            yield Static(
+                f"Press [bold {KEY_COLOR}]Enter[/] to apply, "
+                f"[bold {KEY_COLOR}]Escape[/] to clear",
+                id="filter_footer",
+            )
+
+    def on_mount(self) -> None:
+        self.query_one("#filter_input", Input).focus()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.dismiss(event.value)
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if not self._on_change:
+            return
+        if self._debounce_timer:
+            self._debounce_timer.stop()
+        value = event.value
+        self._debounce_timer = self.set_timer(
+            self._debounce_seconds,
+            lambda: self._on_change(value),
+        )
+
+    def action_cancel(self) -> None:
+        self.dismiss("")
+
+    def on_unmount(self) -> None:
+        if self._debounce_timer:
+            self._debounce_timer.stop()
