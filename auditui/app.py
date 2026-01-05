@@ -403,11 +403,12 @@ class Auditui(App):
         is_currently_finished = self.library_client.is_finished(selected_item)
 
         if is_currently_finished:
-            success = self.library_client.mark_as_unfinished(asin)
-            message = "Marked as unfinished" if success else "Failed to mark as unfinished"
-        else:
-            success = self.library_client.mark_as_finished(asin, selected_item)
-            message = "Marked as finished" if success else "Failed to mark as finished"
+            self.call_from_thread(self.update_status,
+                                  "Already marked as finished")
+            return
+
+        success = self.library_client.mark_as_finished(asin, selected_item)
+        message = "Marked as finished" if success else "Failed to mark as finished"
 
         self.call_from_thread(self.update_status, message)
         if success:
