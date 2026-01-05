@@ -41,6 +41,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 | `f`          | Mark as finished/unfinished |
 | `d`          | Download/delete from cache  |
 | `s`          | Show stats screen           |
+| `/`          | Filter library              |
 | `q`          | Quit the application        |
 
 ## Roadmap
@@ -60,7 +61,7 @@ Please also note that as of now, you need to have [ffmpeg](https://ffmpeg.org/) 
 - [x] mark a book as finished or unfinished
 - [x] make ui responsive
 - [x] get your stats in a separated pane
-- [ ] search/filter within your library
+- [x] search/filter within your library
 - [ ] installation setup
 
 ## Auth / credentials
