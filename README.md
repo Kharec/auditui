@@ -1,8 +1,13 @@
 # auditui
 
-A terminal-based user interface (TUI) client for Audible, written in Python 3: listen to your audiobooks (even offline), browse your library, and more!
+A terminal-based user interface (TUI) client for [Audible](https://www.audible.fr/), written in Python 3.
 
 Currently, the only available theme is Catppuccin Mocha, following their [style guide](https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md), as it's my preferred theme across most of my tools.
+
+## Requirements
+
+- [Python](https://www.python.org/) 3.10-3.12 (3.13+ is not yet supported by `audible` module)
+- [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
 ## Features
 
@@ -14,11 +19,6 @@ Currently, the only available theme is Catppuccin Mocha, following their [style 
 - **Statistics**: View listening statistics and library overview
 - **Keyboard-driven**: Fully navigable with keyboard shortcuts for efficient use
 - **Two-factor authentication**: Supports OTP for secure login
-
-## Requirements
-
-- [Python](https://www.python.org/) 3.10-3.12 (3.13+ is not yet supported by `audible` module)
-- [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
 ## Installation
 
