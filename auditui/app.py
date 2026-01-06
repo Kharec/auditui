@@ -27,6 +27,7 @@ from .table_utils import (
     filter_unfinished_items,
     format_item_as_row,
 )
+from .search_utils import build_search_text, filter_items
 from .ui import FilterScreen, HelpScreen, StatsScreen
 
 if TYPE_CHECKING:
@@ -472,11 +473,8 @@ class Auditui(App):
         items = self.all_items
 
         if self.filter_text:
-            filter_lower = self.filter_text.lower()
-            items = [
-                item for item in items
-                if filter_lower in self._get_search_text(item)
-            ]
+            items = filter_items(items, self.filter_text,
+                                 self._get_search_text)
             self._populate_table(items)
             self.update_status(
                 f"Filter: '{self.filter_text}' ({len(items)} books)")
@@ -493,21 +491,7 @@ class Auditui(App):
         cached = self._search_text_cache.get(cache_key)
         if cached is not None:
             return cached
-
-        title = ""
-        authors = ""
-        if self.library_client:
-            title = self.library_client.extract_title(item)
-            authors = self.library_client.extract_authors(item)
-        else:
-            title = item.get("title", "")
-            authors = ", ".join(
-                a.get("name", "")
-                for a in item.get("authors", [])
-                if isinstance(a, dict) and a.get("name")
-            )
-
-        search_text = f"{title} {authors}".lower()
+        search_text = build_search_text(item, self.library_client)
         self._search_text_cache[cache_key] = search_text
         return search_text
 
