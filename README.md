@@ -17,7 +17,7 @@ Currently, the only available theme is Catppuccin Mocha, following their [style 
 
 ## Requirements
 
-- [Python](https://www.python.org/) 3.10-3.12 (3.13+ is not yet supported by `audible` module)
+- [Python](https://www.python.org/) 3.10-3.12 (3.13+ is not yet supported by `audible` module, according to `master` branch it'll be done for next version)
 - [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
 ## Installation
