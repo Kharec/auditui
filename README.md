@@ -36,6 +36,17 @@ auditui --version
 
 All set, run `auditui configure` to set up authentication, and then `auditui` to start the TUI.
 
+### Workaround for Python 3.13 linux distribution
+
+On some Linux distributions, Python 3.13 is already the default. So you have to install Python 3.12 manually before using `pipx`.
+
+Workaround for Arch Linux:
+
+```bash
+yay -S python312
+pipx install auditui --python python3.12
+```
+
 ## Keybindings
 
 | Key          | Action                     |
