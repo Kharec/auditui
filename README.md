@@ -44,7 +44,7 @@ Workaround for Arch Linux:
 
 ```bash
 yay -S python312
-pipx install auditui --python python3.12
+pipx install git+https://git.kharec.info/Kharec/auditui.git --python python3.12
 ```
 
 ## Keybindings
