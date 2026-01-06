@@ -46,7 +46,7 @@ For Arch Linux:
 yay -S python312
 ```
 
-On other systems, install Python 3.12 and run:
+Once you have Python 3.12, run:
 
 ```bash
 pipx install git+https://git.kharec.info/Kharec/auditui.git --python python3.12
