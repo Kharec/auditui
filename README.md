@@ -17,7 +17,7 @@ Currently, the only available theme is Catppuccin Mocha, following their [style 
 
 ## Requirements
 
-- [Python](https://www.python.org/) 3.10-3.12 (3.13+ is not yet supported by `audible` module, according to `master` branch it'll be done for next version)
+- [Python](https://www.python.org/) 3.10-3.12 (3.13+ is not yet supported by `audible` module)
 - [ffmpeg](https://ffmpeg.org/) installed to play audio files.
 
 ## Installation
@@ -40,11 +40,26 @@ All set, run `auditui configure` to set up authentication, and then `auditui` to
 
 On some Linux distributions, Python 3.13 is already the default. So you have to install Python 3.12 manually before using `pipx`.
 
-Workaround for Arch Linux:
+For Arch Linux:
 
 ```bash
 yay -S python312
+```
+
+On other systems, install Python 3.12 and run:
+
+```bash
 pipx install git+https://git.kharec.info/Kharec/auditui.git --python python3.12
+```
+
+As Python <3.14 is supported on `master` branch of the upstream [`audible`](https://github.com/mkb79/Audible), this should be temporary until the next version.
+
+## Upgrade
+
+Assuming it's already installed, use `pipx` to upgrade auditui:
+
+```bash
+pipx upgrade auditui
 ```
 
 ## Keybindings
