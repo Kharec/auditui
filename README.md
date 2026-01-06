@@ -148,9 +148,23 @@ $ uv sync
 $ uv run python -m auditui.cli
 ```
 
+Don't forget to run the tests.
+
 ## Testing
 
-WIP.
+As usual, tests are located in `tests` directory and use `pytest`.
+
+Get the dev dependencies:
+
+```bash
+uv sync --extra dev
+```
+
+And run the tests:
+
+```bash
+uv run pytest
+```
 
 ## License
 
