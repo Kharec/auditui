@@ -105,6 +105,14 @@ Static#progress_info {
     text-style: bold;
     margin: 0;
     padding: 0;
+    text-align: center;
+    width: 100%;
+}
+
+#progress_bar_container {
+    align: center middle;
+    width: 100%;
+    height: 1;
 }
 
 ProgressBar#progress_bar {
@@ -112,8 +120,10 @@ ProgressBar#progress_bar {
     background: #10131f;
     border: none;
     margin: 0;
-    padding: 0 1;
-    align: center middle;
+    padding: 0;
+    width: auto;
+    min-width: 40;
+    max-width: 80;
 }
 
 ProgressBar#progress_bar > .progress-bar--track {
