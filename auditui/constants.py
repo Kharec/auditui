@@ -61,8 +61,8 @@ Screen {
 DataTable {
     height: 1fr;
     background: #141622;
-    color: #d6dbf2;
-    border: solid #2b2f45;
+    color: #c7cfe8;
+    border: solid #262a3f;
     scrollbar-size-horizontal: 0;
 }
 
@@ -134,21 +134,16 @@ ProgressBar#progress_bar > .progress-bar--bar {
     background: #8bd5ca;
 }
 
-HelpScreen {
+HelpScreen,
+StatsScreen,
+FilterScreen {
     align: center middle;
     background: rgba(0, 0, 0, 0.7);
 }
 
-HelpScreen Static {
-    background: transparent;
-}
-
-StatsScreen {
-    align: center middle;
-    background: rgba(0, 0, 0, 0.7);
-}
-
-StatsScreen Static {
+HelpScreen Static,
+StatsScreen Static,
+FilterScreen Static {
     background: transparent;
 }
 
@@ -213,7 +208,7 @@ StatsScreen .help_list > ListItem > Label {
 }
 
 .help_list {
-    width: 1fr;
+    width: 100%;
     height: auto;
     background: transparent;
     padding: 0 1;
@@ -239,18 +234,9 @@ StatsScreen .help_list > ListItem > Label {
     height: 3;
     text-align: center;
     content-align: center middle;
-    color: #bac2de;
+    color: #b6bfdc;
     margin-top: 1;
     border-top: solid #4b5165;
-}
-
-FilterScreen {
-    align: center middle;
-    background: rgba(0, 0, 0, 0.7);
-}
-
-FilterScreen Static {
-    background: transparent;
 }
 
 #filter_container {
@@ -281,7 +267,7 @@ FilterScreen Static {
     height: 2;
     text-align: center;
     content-align: center middle;
-    color: #bac2de;
+    color: #b6bfdc;
     margin-top: 1;
 }
 """
