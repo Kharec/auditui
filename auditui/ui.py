@@ -5,7 +5,7 @@ from datetime import date, datetime
 from typing import Any, Callable, Protocol, TYPE_CHECKING, cast
 
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Container, Vertical
 from textual.screen import ModalScreen
 from textual.timer import Timer
 from textual.widgets import Input, Label, ListItem, ListView, Static
@@ -69,23 +69,18 @@ class HelpScreen(AppContextMixin, ModalScreen):
         """Create a ListItem for a single binding."""
         key, description = self._parse_binding(binding)
         key_display = self._format_key_display(key)
-        text = f"[bold {KEY_COLOR}]{key_display:>12}[/]  [{DESC_COLOR}]{description}[/]"
+        text = f"[bold {KEY_COLOR}]{key_display:>16}[/]  [{DESC_COLOR}]{description:<25}[/]"
         return ListItem(Label(text))
 
     def compose(self) -> ComposeResult:
         app = self._app()
         bindings = list(app.BINDINGS)
-        mid = (len(bindings) + 1) // 2
 
         with Container(id="help_container"):
-            yield Static("Key Bindings", id="help_title")
-            with Horizontal(id="help_content"):
+            yield Static("Keybindings", id="help_title")
+            with Vertical(id="help_content"):
                 yield ListView(
-                    *[self._make_item(b) for b in bindings[:mid]],
-                    classes="help_list",
-                )
-                yield ListView(
-                    *[self._make_item(b) for b in bindings[mid:]],
+                    *[self._make_item(b) for b in bindings],
                     classes="help_list",
                 )
             yield Static(
