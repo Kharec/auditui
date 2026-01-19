@@ -98,7 +98,8 @@ class Auditui(App):
         table.cursor_type = "row"
         yield table
         yield Static("", id="progress_info")
-        yield ProgressBar(id="progress_bar", show_eta=False, show_percentage=False, total=100)
+        with Horizontal(id="progress_bar_container"):
+            yield ProgressBar(id="progress_bar", show_eta=False, show_percentage=False, total=100)
 
     def on_mount(self) -> None:
         """Initialize the table and start fetching library data."""
@@ -525,6 +526,8 @@ class Auditui(App):
 
         progress_info = self.query_one("#progress_info", Static)
         progress_bar = self.query_one("#progress_bar", ProgressBar)
+        progress_bar_container = self.query_one(
+            "#progress_bar_container", Horizontal)
 
         progress_percent = min(100.0, max(
             0.0, (chapter_elapsed / chapter_total) * 100.0))
@@ -534,14 +537,15 @@ class Auditui(App):
         progress_info.update(
             f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
         progress_info.display = True
-        progress_bar.display = True
+        progress_bar_container.display = True
 
     def _hide_progress(self) -> None:
         """Hide the progress widget."""
         progress_info = self.query_one("#progress_info", Static)
-        progress_bar = self.query_one("#progress_bar", ProgressBar)
+        progress_bar_container = self.query_one(
+            "#progress_bar_container", Horizontal)
         progress_info.display = False
-        progress_bar.display = False
+        progress_bar_container.display = False
 
     def _save_position_periodically(self) -> None:
         """Periodically save playback position."""
