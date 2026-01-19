@@ -178,25 +178,25 @@ StatsScreen .help_list > ListItem > Label {
 }
 
 #help_container {
-    width: 88%;
-    max-width: 120;
-    min-width: 48;
+    width: 72%;
+    max-width: 90;
+    min-width: 44;
     height: auto;
     max-height: 80%;
     min-height: 14;
     background: #181a2a;
     border: heavy #7aa2f7;
-    padding: 1 2;
+    padding: 1 1;
 }
 
 #help_title {
     width: 100%;
-    height: 3;
+    height: 2;
     text-align: center;
     text-style: bold;
     color: #7aa2f7;
     content-align: center middle;
-    margin-bottom: 1;
+    margin-bottom: 0;
     border-bottom: solid #4b5165;
 }
 
@@ -205,19 +205,21 @@ StatsScreen .help_list > ListItem > Label {
     height: auto;
     padding: 0;
     margin: 0 0 1 0;
+    align: center middle;
 }
 
 .help_list {
     width: 100%;
     height: auto;
     background: transparent;
-    padding: 0 1;
+    padding: 0;
     scrollbar-size: 0 0;
 }
 
 .help_list > ListItem {
     background: #1b1f33;
     padding: 0 1;
+    height: 1;
 }
 
 .help_list > ListItem:hover {
@@ -231,11 +233,11 @@ StatsScreen .help_list > ListItem > Label {
 
 #help_footer {
     width: 100%;
-    height: 3;
+    height: 2;
     text-align: center;
     content-align: center middle;
     color: #b6bfdc;
-    margin-top: 1;
+    margin-top: 0;
     border-top: solid #4b5165;
 }
 
