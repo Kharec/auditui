@@ -122,9 +122,11 @@ ProgressBar#progress_bar {
     border: none;
     margin: 0;
     padding: 0;
-    width: auto;
-    min-width: 40;
-    max-width: 80;
+    width: 50%;
+}
+
+ProgressBar#progress_bar Bar {
+    width: 100%;
 }
 
 ProgressBar#progress_bar > .progress-bar--track {
