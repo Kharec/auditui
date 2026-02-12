@@ -9,7 +9,13 @@ import audible
 import httpx
 from audible.activation_bytes import get_activation_bytes
 
-from .constants import CACHE_DIR, DEFAULT_CHUNK_SIZE, DEFAULT_CODEC, DOWNLOAD_URL, MIN_FILE_SIZE
+from .constants import (
+    CACHE_DIR,
+    DEFAULT_CHUNK_SIZE,
+    DEFAULT_CODEC,
+    DOWNLOAD_URL,
+    MIN_FILE_SIZE,
+)
 
 StatusCallback = Callable[[str], None]
 
@@ -29,15 +35,15 @@ class DownloadManager:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.chunk_size = chunk_size
-        self._http_client = httpx.Client(
-            auth=auth, timeout=30.0, follow_redirects=True)
+        self._http_client = httpx.Client(auth=auth, timeout=30.0, follow_redirects=True)
         self._download_client = httpx.Client(
-            timeout=httpx.Timeout(connect=30.0, read=None,
-                                  write=30.0, pool=30.0),
+            timeout=httpx.Timeout(connect=30.0, read=None, write=30.0, pool=30.0),
             follow_redirects=True,
         )
 
-    def get_or_download(self, asin: str, notify: StatusCallback | None = None) -> Path | None:
+    def get_or_download(
+        self, asin: str, notify: StatusCallback | None = None
+    ) -> Path | None:
         """Get local path of AAX file, downloading if missing."""
         title = self._get_name_from_asin(asin) or asin
         safe_title = self._sanitize_filename(title)
@@ -140,7 +146,10 @@ class DownloadManager:
             return None
 
     def _get_download_link(
-        self, asin: str, codec: str = DEFAULT_CODEC, notify: StatusCallback | None = None
+        self,
+        asin: str,
+        codec: str = DEFAULT_CODEC,
+        notify: StatusCallback | None = None,
     ) -> str | None:
         """Get download link for book."""
         if self.auth.adp_token is None:
@@ -193,8 +202,10 @@ class DownloadManager:
                         downloaded += len(chunk)
                         if total_size > 0 and notify:
                             percent = (downloaded / total_size) * 100
+                            downloaded_mb = downloaded / (1024 * 1024)
+                            total_mb = total_size / (1024 * 1024)
                             notify(
-                                f"Downloading: {percent:.1f}% ({downloaded}/{total_size} bytes)"
+                                f"Downloading: {percent:.1f}% ({downloaded_mb:.1f}/{total_mb:.1f} MB)"
                             )
 
             return dest_path
