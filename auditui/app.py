@@ -99,13 +99,15 @@ class Auditui(App):
         yield table
         yield Static("", id="progress_info")
         with Horizontal(id="progress_bar_container"):
-            yield ProgressBar(id="progress_bar", show_eta=False, show_percentage=False, total=100)
+            yield ProgressBar(
+                id="progress_bar", show_eta=False, show_percentage=False, total=100
+            )
 
     def on_mount(self) -> None:
         """Initialize the table and start fetching library data."""
         table = self.query_one(DataTable)
         for column_name, _ratio in TABLE_COLUMN_DEFS:
-            table.add_column(column_name, width=1)
+            table.add_column(column_name)
         self.call_after_refresh(lambda: self._apply_column_widths(table))
         column_keys = list(table.columns.keys())
         self.title_column_key = column_keys[0]
@@ -134,7 +136,7 @@ class Auditui(App):
             table = self.query_one(DataTable)
         except Exception:
             return
-        self._apply_column_widths(table)
+        self.call_after_refresh(lambda: self._apply_column_widths(table))
 
     def on_key(self, event: Key) -> None:
         """Handle key presses."""
@@ -179,31 +181,44 @@ class Auditui(App):
         status.update(message)
 
     def _apply_column_widths(self, table: DataTable) -> None:
-        """Assign proportional column widths based on available space."""
+        """Assign proportional column widths based on available space.
+
+        Each column's render width = column.width + 2 * cell_padding.
+        We compute column.width values so columns fill the full table width.
+        """
         if not table.columns:
             return
 
         column_keys = list(table.columns.keys())
+        num_cols = len(column_keys)
         ratios = [ratio for _, ratio in TABLE_COLUMN_DEFS]
-        total_ratio = sum(ratios) or len(column_keys)
+        total_ratio = sum(ratios) or num_cols
+
         content_width = table.scrollable_content_region.width
-        available_width = content_width
-        if available_width <= 0:
+        if content_width <= 0:
+            content_width = table.size.width
+        if content_width <= 0:
             return
+
+        padding_total = 2 * table.cell_padding * num_cols
+        distributable = max(num_cols, content_width - padding_total)
 
         widths: list[int] = []
         for ratio in ratios:
-            width = max(1, (available_width * ratio) // total_ratio)
-            widths.append(width)
+            w = max(1, (distributable * ratio) // total_ratio)
+            widths.append(w)
 
-        remainder = available_width - sum(widths)
-        for i in range(remainder):
-            widths[i % len(widths)] += 1
+        remainder = distributable - sum(widths)
+        if remainder > 0:
+            indices = sorted(
+                range(num_cols), key=lambda i: ratios[i], reverse=True)
+            for i in range(remainder):
+                widths[indices[i % num_cols]] += 1
 
-        for column_key, width in zip(column_keys, widths):
-            column = table.columns[column_key]
-            column.auto_width = False
-            column.width = width
+        for column_key, w in zip(column_keys, widths):
+            col = table.columns[column_key]
+            col.auto_width = False
+            col.width = w
         table.refresh()
 
     def _thread_status_update(self, message: str) -> None:
@@ -250,13 +265,15 @@ class Auditui(App):
 
         for item in items:
             title, author, runtime, progress, downloaded = format_item_as_row(
-                item, self.library_client, self.download_manager)
+                item, self.library_client, self.download_manager
+            )
             table.add_row(title, author, runtime,
                           progress, downloaded, key=title)
 
         self.current_items = items
         status = self.query_one("#status", Static)
         status.display = False
+        self._apply_column_widths(table)
 
     def _refresh_table(self) -> None:
         """Refresh the table with current items."""
@@ -291,7 +308,8 @@ class Auditui(App):
         if table.row_count > 0:
             self.progress_sort_reverse = not self.progress_sort_reverse
             progress_key, reverse = create_progress_sort_key(
-                self.progress_column_index, self.progress_sort_reverse)
+                self.progress_column_index, self.progress_sort_reverse
+            )
             table.sort(key=progress_key, reverse=reverse)
 
     def action_show_all(self) -> None:
@@ -529,13 +547,15 @@ class Auditui(App):
         progress_bar_container = self.query_one(
             "#progress_bar_container", Horizontal)
 
-        progress_percent = min(100.0, max(
-            0.0, (chapter_elapsed / chapter_total) * 100.0))
+        progress_percent = min(
+            100.0, max(0.0, (chapter_elapsed / chapter_total) * 100.0)
+        )
         progress_bar.update(progress=progress_percent)
         chapter_elapsed_str = LibraryClient.format_time(chapter_elapsed)
         chapter_total_str = LibraryClient.format_time(chapter_total)
         progress_info.update(
-            f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}")
+            f"{chapter_name} | {chapter_elapsed_str} / {chapter_total_str}"
+        )
         progress_info.display = True
         progress_bar_container.display = True
 
