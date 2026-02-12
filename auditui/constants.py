@@ -11,8 +11,8 @@ MIN_FILE_SIZE = 1024 * 1024
 DEFAULT_CHUNK_SIZE = 8192
 
 TABLE_COLUMN_DEFS = (
-    ("Title", 2),
-    ("Author", 2),
+    ("Title", 4),
+    ("Author", 3),
     ("Length", 1),
     ("Progress", 1),
     ("Downloaded", 1),
@@ -59,6 +59,7 @@ Screen {
 }
 
 DataTable {
+    width: 100%;
     height: 1fr;
     background: #141622;
     color: #c7cfe8;
