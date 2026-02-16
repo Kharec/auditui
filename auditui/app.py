@@ -31,13 +31,12 @@ from .search_utils import build_search_text, filter_items
 from .ui import FilterScreen, HelpScreen, StatsScreen
 
 if TYPE_CHECKING:
-    from textual.widgets._data_table import ColumnKey
+    from textual.widgets.data_table import ColumnKey
 
 
 class Auditui(App):
     """Main application class for the Audible TUI app."""
 
-    theme = "textual-dark"
     SHOW_PALETTE = False
 
     BINDINGS = [
@@ -72,8 +71,7 @@ class Auditui(App):
         self.download_manager = (
             DownloadManager(auth, client) if auth and client else None
         )
-        self.playback = PlaybackController(
-            self.update_status, self.library_client)
+        self.playback = PlaybackController(self.update_status, self.library_client)
 
         self.all_items: list[dict] = []
         self.current_items: list[dict] = []
@@ -105,6 +103,7 @@ class Auditui(App):
 
     def on_mount(self) -> None:
         """Initialize the table and start fetching library data."""
+        self.theme = "textual-dark"
         table = self.query_one(DataTable)
         for column_name, _ratio in TABLE_COLUMN_DEFS:
             table.add_column(column_name)
@@ -116,8 +115,7 @@ class Auditui(App):
             self.update_status("Fetching library...")
             self.fetch_library()
         else:
-            self.update_status(
-                "Not authenticated. Please restart and authenticate.")
+            self.update_status("Not authenticated. Please restart and authenticate.")
 
         self.set_interval(1.0, self._check_playback_status)
         self.set_interval(0.5, self._update_progress)
@@ -210,8 +208,7 @@ class Auditui(App):
 
         remainder = distributable - sum(widths)
         if remainder > 0:
-            indices = sorted(
-                range(num_cols), key=lambda i: ratios[i], reverse=True)
+            indices = sorted(range(num_cols), key=lambda i: ratios[i], reverse=True)
             for i in range(remainder):
                 widths[indices[i % num_cols]] += 1
 
@@ -233,8 +230,7 @@ class Auditui(App):
             return
 
         try:
-            all_items = self.library_client.fetch_all_items(
-                self._thread_status_update)
+            all_items = self.library_client.fetch_all_items(self._thread_status_update)
             self.call_from_thread(self.on_library_loaded, all_items)
         except (OSError, ValueError, KeyError) as exc:
             self.call_from_thread(self.on_library_error, str(exc))
@@ -267,8 +263,7 @@ class Auditui(App):
             title, author, runtime, progress, downloaded = format_item_as_row(
                 item, self.library_client, self.download_manager
             )
-            table.add_row(title, author, runtime,
-                          progress, downloaded, key=title)
+            table.add_row(title, author, runtime, progress, downloaded, key=title)
 
         self.current_items = items
         status = self.query_one("#status", Static)
@@ -330,8 +325,7 @@ class Auditui(App):
     def action_play_selected(self) -> None:
         """Start playing the selected book."""
         if not self.download_manager:
-            self.update_status(
-                "Not authenticated. Please restart and authenticate.")
+            self.update_status("Not authenticated. Please restart and authenticate.")
             return
 
         table = self.query_one(DataTable)
@@ -435,8 +429,7 @@ class Auditui(App):
         is_currently_finished = self.library_client.is_finished(selected_item)
 
         if is_currently_finished:
-            self.call_from_thread(self.update_status,
-                                  "Already marked as finished")
+            self.call_from_thread(self.update_status, "Already marked as finished")
             return
 
         success = self.library_client.mark_as_finished(asin, selected_item)
@@ -479,9 +472,9 @@ class Auditui(App):
             self._refresh_filtered_view()
             self.update_status("Filter cleared")
 
-    def _apply_filter(self, filter_text: str) -> None:
+    def _apply_filter(self, filter_text: str | None) -> None:
         """Apply the filter to the library."""
-        self.filter_text = filter_text
+        self.filter_text = filter_text or ""
         self._refresh_filtered_view()
 
     def _refresh_filtered_view(self) -> None:
@@ -492,11 +485,9 @@ class Auditui(App):
         items = self.all_items
 
         if self.filter_text:
-            items = filter_items(items, self.filter_text,
-                                 self._get_search_text)
+            items = filter_items(items, self.filter_text, self._get_search_text)
             self._populate_table(items)
-            self.update_status(
-                f"Filter: '{self.filter_text}' ({len(items)} books)")
+            self.update_status(f"Filter: '{self.filter_text}' ({len(items)} books)")
             return
 
         if not self.show_all_mode and self.library_client:
@@ -544,8 +535,7 @@ class Auditui(App):
 
         progress_info = self.query_one("#progress_info", Static)
         progress_bar = self.query_one("#progress_bar", ProgressBar)
-        progress_bar_container = self.query_one(
-            "#progress_bar_container", Horizontal)
+        progress_bar_container = self.query_one("#progress_bar_container", Horizontal)
 
         progress_percent = min(
             100.0, max(0.0, (chapter_elapsed / chapter_total) * 100.0)
@@ -562,8 +552,7 @@ class Auditui(App):
     def _hide_progress(self) -> None:
         """Hide the progress widget."""
         progress_info = self.query_one("#progress_info", Static)
-        progress_bar_container = self.query_one(
-            "#progress_bar_container", Horizontal)
+        progress_bar_container = self.query_one("#progress_bar_container", Horizontal)
         progress_info.display = False
         progress_bar_container.display = False
 
@@ -574,8 +563,7 @@ class Auditui(App):
     def action_toggle_download(self) -> None:
         """Toggle download/remove for the selected book."""
         if not self.download_manager:
-            self.update_status(
-                "Not authenticated. Please restart and authenticate.")
+            self.update_status("Not authenticated. Please restart and authenticate.")
             return
 
         table = self.query_one(DataTable)
@@ -608,11 +596,9 @@ class Auditui(App):
             return
 
         if self.download_manager.is_cached(asin):
-            self.download_manager.remove_cached(
-                asin, self._thread_status_update)
+            self.download_manager.remove_cached(asin, self._thread_status_update)
         else:
-            self.download_manager.get_or_download(
-                asin, self._thread_status_update)
+            self.download_manager.get_or_download(asin, self._thread_status_update)
 
         self.call_from_thread(self._refresh_table)
 
