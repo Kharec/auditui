@@ -1,10 +1,10 @@
 [project]
 name = "auditui"
-version = "0.1.5"
+version = "0.1.6"
 description = "An Audible TUI client"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
-dependencies = ["audible>=0.10.0", "httpx>=0.28.1", "textual>=6.7.1"]
+dependencies = ["audible>=0.10.0", "httpx>=0.28.1", "textual>=8.0.0"]
 
 [project.optional-dependencies]
 dev = [
