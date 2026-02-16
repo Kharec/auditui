@@ -35,7 +35,7 @@ wheels = [
 
 [[package]]
 name = "auditui"
-version = "0.1.5"
+version = "0.1.6"
 source = { editable = "." }
 dependencies = [
     { name = "audible" },
@@ -59,7 +59,7 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.28.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "textual", specifier = ">=6.7.1" },
+    { name = "textual", specifier = ">=8.0.0" },
 ]
 provides-extras = ["dev"]
 
@@ -445,7 +445,7 @@ wheels = [
 
 [[package]]
 name = "textual"
-version = "6.7.1"
+version = "8.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
@@ -455,9 +455,9 @@ dependencies = [
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ab/00/9520327698acb6d8ae120b311ef1901840d55a6c41580e377f36261daf7a/textual-6.7.1.tar.gz", hash = "sha256:2a5acb0ab316a7ba9e74b0a291fab8933d681d7cf6f4e1eeb45c39a731b094cf", size = 1580916, upload-time = "2025-12-01T20:57:25.578Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/08/1e1f705825359590ddfaeda57653bd518c4ff7a96bb2c3239ba1b6fc4c51/textual-8.0.0.tar.gz", hash = "sha256:ce48f83a3d686c0fac0e80bf9136e1f8851c653aa6a4502e43293a151df18809", size = 1595895, upload-time = "2026-02-16T17:12:14.215Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/7a/7f3ea5e6f26d546ee4bd107df8fc9eef9f149dab0f6f15e1fc9f9413231f/textual-6.7.1-py3-none-any.whl", hash = "sha256:b92977ac5941dd37b6b7dc0ac021850ce8d9bf2e123c5bab7ff2016f215272e0", size = 713993, upload-time = "2025-12-01T20:57:23.698Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/be/e191c2a15da20530fde03564564e3e4b4220eb9d687d4014957e5c6a5e85/textual-8.0.0-py3-none-any.whl", hash = "sha256:8908f4ebe93a6b4f77ca7262197784a52162bc88b05f4ecf50ac93a92d49bb8f", size = 718904, upload-time = "2026-02-16T17:12:11.962Z" },
 ]
 
 [[package]]
