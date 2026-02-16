@@ -38,11 +38,11 @@ KEY_COLOR = "#f9e2af"
 DESC_COLOR = "#cdd6f4"
 
 
-class AppContextMixin(ModalScreen):
+class AppContextMixin:
     """Mixin to provide a typed app accessor."""
 
     def _app(self) -> _AppContext:
-        return cast(_AppContext, self.app)
+        return cast(_AppContext, cast(Any, self).app)
 
 
 class HelpScreen(AppContextMixin, ModalScreen):
@@ -165,8 +165,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
         """Check if stats contain any listening activity."""
         monthly_stats = stats.get("aggregated_monthly_listening_stats", [])
         return bool(
-            monthly_stats and any(s.get("aggregated_sum", 0)
-                                  > 0 for s in monthly_stats)
+            monthly_stats and any(s.get("aggregated_sum", 0) > 0 for s in monthly_stats)
         )
 
     def _get_listening_time(self, duration: int, start_date: str) -> int:
@@ -192,9 +191,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
         app = self._app()
         if not app.library_client or not app.all_items:
             return 0
-        return sum(
-            1 for item in app.all_items if app.library_client.is_finished(item)
-        )
+        return sum(1 for item in app.all_items if app.library_client.is_finished(item))
 
     def _get_account_info(self) -> dict:
         """Get account information including subscription details."""
@@ -220,8 +217,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
 
         for endpoint, response_groups in endpoints:
             try:
-                response = app.client.get(
-                    endpoint, response_groups=response_groups)
+                response = app.client.get(endpoint, response_groups=response_groups)
                 account_info.update(response)
             except Exception:
                 pass
@@ -414,7 +410,11 @@ class StatsScreen(AppContextMixin, ModalScreen):
             if hasattr(locale_obj, "domain"):
                 return locale_obj.domain.upper()
             if isinstance(locale_obj, str):
-                return locale_obj.split("_")[-1].upper() if "_" in locale_obj else locale_obj.upper()
+                return (
+                    locale_obj.split("_")[-1].upper()
+                    if "_" in locale_obj
+                    else locale_obj.upper()
+                )
             return str(locale_obj)
         except Exception:
             return "Unknown"
@@ -446,8 +446,10 @@ class StatsScreen(AppContextMixin, ModalScreen):
             yield Static("Statistics", id="help_title")
             with Vertical(id="help_content"):
                 yield ListView(
-                    *[self._make_stat_item(label, value)
-                      for label, value in stats_items],
+                    *[
+                        self._make_stat_item(label, value)
+                        for label, value in stats_items
+                    ],
                     classes="help_list",
                 )
             yield Static(
@@ -491,8 +493,9 @@ class StatsScreen(AppContextMixin, ModalScreen):
         if email != "Unknown":
             stats_items.append(("Email", email))
         stats_items.append(("Country Store", country))
-        stats_items.append(("Signup Year", str(signup_year)
-                           if signup_year > 0 else "Unknown"))
+        stats_items.append(
+            ("Signup Year", str(signup_year) if signup_year > 0 else "Unknown")
+        )
         if next_bill_date != "Unknown":
             stats_items.append(("Next Credit", next_bill_date))
             stats_items.append(("Next Bill", next_bill_date))
@@ -502,8 +505,7 @@ class StatsScreen(AppContextMixin, ModalScreen):
             stats_items.append(("Price", subscription_price))
         stats_items.append(("This Month", self._format_time(month_time)))
         stats_items.append(("This Year", self._format_time(year_time)))
-        stats_items.append(
-            ("Books Finished", f"{finished_count} / {total_books}"))
+        stats_items.append(("Books Finished", f"{finished_count} / {total_books}"))
 
         return stats_items
 
@@ -549,14 +551,15 @@ class FilterScreen(ModalScreen[str]):
         self.dismiss(event.value)
 
     def on_input_changed(self, event: Input.Changed) -> None:
-        if not self._on_change:
+        callback = self._on_change
+        if not callback:
             return
         if self._debounce_timer:
             self._debounce_timer.stop()
         value = event.value
         self._debounce_timer = self.set_timer(
             self._debounce_seconds,
-            lambda: self._on_change(value),
+            lambda: callback(value),
         )
 
     def action_cancel(self) -> None:
