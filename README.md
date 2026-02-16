@@ -138,7 +138,7 @@ OTP is supported if you use a two-factor authentication device.
 
 ## Hacking
 
-This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
+This project uses [uv](https://github.com/astral-sh/uv) for dependency management, the TUI is built with [Textual](https://textual.textualize.io/) (currently `textual>=8.0.0`).
 
 ```bash
 # install dependencies (creates .venv)
