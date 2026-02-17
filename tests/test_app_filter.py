@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Any, cast
+
 from auditui.app import Auditui
 from auditui.search_utils import build_search_text, filter_items
 
@@ -12,16 +15,17 @@ class StubLibrary:
         return item.get("authors", "")
 
 
-def test_get_search_text_is_cached() -> None:
-    class Dummy:
-        def __init__(self) -> None:
-            self._search_text_cache: dict[int, str] = {}
-            self.library_client = StubLibrary()
+@dataclass(slots=True)
+class Dummy:
+    _search_text_cache: dict[int, str] = field(default_factory=dict)
+    library_client: StubLibrary = field(default_factory=StubLibrary)
 
+
+def test_get_search_text_is_cached() -> None:
     item = {"title": "Title", "authors": "Author"}
     dummy = Dummy()
-    first = Auditui._get_search_text(dummy, item)
-    second = Auditui._get_search_text(dummy, item)
+    first = Auditui._get_search_text(cast(Auditui, dummy), item)
+    second = Auditui._get_search_text(cast(Auditui, dummy), item)
     assert first == "title author"
     assert first == second
     assert len(dummy._search_text_cache) == 1
@@ -38,7 +42,7 @@ def test_filter_items_uses_cache() -> None:
     def cached(item: dict) -> str:
         cache_key = id(item)
         if cache_key not in cache:
-            cache[cache_key] = build_search_text(item, library)
+            cache[cache_key] = build_search_text(item, cast(Any, library))
         return cache[cache_key]
 
     result = filter_items(items, "beta", cached)
