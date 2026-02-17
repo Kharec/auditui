@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Callable, cast
+
 from auditui.ui import FilterScreen
+from textual.widgets import Input
 
 
+@dataclass(slots=True)
 class DummyEvent:
-    def __init__(self, value: str) -> None:
-        self.value = value
+    value: str
 
 
+@dataclass(slots=True)
 class FakeTimer:
-    def __init__(self, callback) -> None:
-        self.callback = callback
-        self.stopped = False
+    callback: Callable[[], None]
+    stopped: bool = False
 
     def stop(self) -> None:
         self.stopped = True
@@ -33,8 +37,8 @@ def test_filter_debounce_uses_latest_value(monkeypatch) -> None:
 
     monkeypatch.setattr(screen, "set_timer", fake_set_timer)
 
-    screen.on_input_changed(DummyEvent("a"))
-    screen.on_input_changed(DummyEvent("ab"))
+    screen.on_input_changed(cast(Input.Changed, DummyEvent("a")))
+    screen.on_input_changed(cast(Input.Changed, DummyEvent("ab")))
 
     assert len(timers) == 2
     assert timers[0].stopped is True
