@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Any, cast
+
 from auditui import table_utils
 
 
@@ -25,9 +28,9 @@ class StubLibrary:
         return item.get("asin")
 
 
+@dataclass(slots=True)
 class StubDownloads:
-    def __init__(self, cached: set[str]) -> None:
-        self._cached = cached
+    _cached: set[str]
 
     def is_cached(self, asin: str) -> bool:
         return asin in self._cached
@@ -63,7 +66,7 @@ def test_format_item_as_row_with_downloaded() -> None:
         "asin": "ASIN123",
     }
     title, author, runtime, progress, downloaded = table_utils.format_item_as_row(
-        item, library, downloads
+        item, library, cast(Any, downloads)
     )
     assert title == "Title"
     assert author == "Author One"
