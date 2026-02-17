@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
@@ -6,13 +7,13 @@ import pytest
 from auditui import ui
 
 
+@dataclass(slots=True)
 class DummyApp:
-    def __init__(self) -> None:
-        self.client = None
-        self.auth = None
-        self.library_client = None
-        self.all_items = []
-        self.BINDINGS = []
+    client: object | None = None
+    auth: object | None = None
+    library_client: object | None = None
+    all_items: list[dict] = field(default_factory=list)
+    BINDINGS: list[tuple[str, str, str]] = field(default_factory=list)
 
 
 @pytest.fixture
