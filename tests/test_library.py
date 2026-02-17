@@ -1,12 +1,14 @@
+from dataclasses import dataclass, field
+
 from auditui.library import LibraryClient
 
 
+@dataclass(slots=True)
 class MockClient:
-    def __init__(self) -> None:
-        self.put_calls: list[tuple[str, dict]] = []
-        self.post_calls: list[tuple[str, dict]] = []
-        self._post_response: dict = {}
-        self.raise_on_put = False
+    put_calls: list[tuple[str, dict]] = field(default_factory=list)
+    post_calls: list[tuple[str, dict]] = field(default_factory=list)
+    _post_response: dict = field(default_factory=dict)
+    raise_on_put: bool = False
 
     def put(self, path: str, body: dict) -> dict:
         if self.raise_on_put:
