@@ -20,7 +20,7 @@ class AppLayoutMixin:
             id="top_bar",
         )
         yield Static("Loading...", id="status")
-        table = DataTable()
+        table = DataTable(id="library_table")
         table.zebra_stripes = True
         table.cursor_type = "row"
         yield table
@@ -32,7 +32,10 @@ class AppLayoutMixin:
 
     def on_mount(self) -> None:
         self.theme = "textual-dark"
-        table = self.query_one(DataTable)
+        self.call_after_refresh(self._init_table_and_intervals)
+
+    def _init_table_and_intervals(self) -> None:
+        table = self.query_one("#library_table", DataTable)
         for column_name, _ratio in TABLE_COLUMN_DEFS:
             table.add_column(column_name)
         self.call_after_refresh(lambda: self._apply_column_widths(table))
@@ -58,7 +61,7 @@ class AppLayoutMixin:
     def on_resize(self, event: Resize) -> None:
         del event
         try:
-            table = self.query_one(DataTable)
+            table = self.query_one("#library_table", DataTable)
         except Exception:
             return
         self.call_after_refresh(lambda: self._apply_column_widths(table))

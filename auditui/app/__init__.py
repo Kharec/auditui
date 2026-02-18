@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from textual.app import App
+from textual.app import App, ComposeResult
 
 from ..constants import TABLE_CSS
 
@@ -21,6 +21,9 @@ class Auditui(App, AppProgressMixin, AppActionsMixin, AppLibraryMixin, AppTableM
     SHOW_PALETTE = False
     BINDINGS = BINDINGS
     CSS = TABLE_CSS
+
+    def compose(self) -> ComposeResult:
+        yield from AppLayoutMixin.compose(self)
 
     def __init__(self, auth=None, client=None) -> None:
         super().__init__()

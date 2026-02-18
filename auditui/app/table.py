@@ -15,7 +15,7 @@ from textual.widgets import DataTable, Static
 
 class AppTableMixin:
     def _populate_table(self, items: list[LibraryItem]) -> None:
-        table = self.query_one(DataTable)
+        table = self.query_one("#library_table", DataTable)
         table.clear()
 
         if not items or not self.library_client:
@@ -51,14 +51,14 @@ class AppTableMixin:
         self._refresh_filtered_view()
 
     def action_sort(self) -> None:
-        table = self.query_one(DataTable)
+        table = self.query_one("#library_table", DataTable)
         if table.row_count > 0 and self.title_column_key:
             title_key, reverse = create_title_sort_key(self.title_sort_reverse)
             table.sort(key=title_key, reverse=reverse)
             self.title_sort_reverse = not self.title_sort_reverse
 
     def action_sort_by_progress(self) -> None:
-        table = self.query_one(DataTable)
+        table = self.query_one("#library_table", DataTable)
         if table.row_count > 0:
             self.progress_sort_reverse = not self.progress_sort_reverse
             progress_key, reverse = create_progress_sort_key(

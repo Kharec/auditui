@@ -15,7 +15,7 @@ class AppActionsMixin:
             self.update_status(
                 "Not authenticated. Please restart and authenticate.")
             return None
-        table = self.query_one(DataTable)
+        table = self.query_one("#library_table", DataTable)
         if table.row_count == 0:
             self.update_status("No books available")
             return None
