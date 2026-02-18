@@ -3,6 +3,7 @@
 import re
 import unicodedata
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 import audible
@@ -30,7 +31,7 @@ class DownloadManager:
         chunk_size: int = DEFAULT_CHUNK_SIZE,
     ) -> None:
         self.auth = auth
-        self.client = client
+        self.client: Any = client
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.chunk_size = chunk_size
@@ -244,19 +245,7 @@ class DownloadManager:
             with self._download_client.stream("GET", url) as response:
                 response.raise_for_status()
                 total_size = int(response.headers.get("content-length", 0))
-                downloaded = 0
-
-                with open(dest_path, "wb") as file_handle:
-                    for chunk in response.iter_bytes(chunk_size=self.chunk_size):
-                        file_handle.write(chunk)
-                        downloaded += len(chunk)
-                        if total_size > 0 and notify:
-                            percent = (downloaded / total_size) * 100
-                            downloaded_mb = downloaded / (1024 * 1024)
-                            total_mb = total_size / (1024 * 1024)
-                            notify(
-                                f"Downloading: {percent:.1f}% ({downloaded_mb:.1f}/{total_mb:.1f} MB)"
-                            )
+                self._stream_to_file(response, dest_path, total_size, notify)
 
             return dest_path
         except httpx.HTTPStatusError as exc:
@@ -264,30 +253,55 @@ class DownloadManager:
                 notify(
                     f"Download HTTP error: {exc.response.status_code} {exc.response.reason_phrase}"
                 )
-            try:
-                if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
-                    dest_path.unlink()
-            except OSError:
-                pass
+            self._cleanup_partial_file(dest_path)
             return None
         except httpx.HTTPError as exc:
             if notify:
                 notify(f"Download network error: {exc!s}")
-            try:
-                if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
-                    dest_path.unlink()
-            except OSError:
-                pass
+            self._cleanup_partial_file(dest_path)
             return None
         except (OSError, ValueError, KeyError) as exc:
             if notify:
                 notify(f"Download error: {exc!s}")
-            try:
-                if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
-                    dest_path.unlink()
-            except OSError:
-                pass
+            self._cleanup_partial_file(dest_path)
             return None
+
+    def _stream_to_file(
+        self,
+        response: httpx.Response,
+        dest_path: Path,
+        total_size: int,
+        notify: StatusCallback | None = None,
+    ) -> None:
+        """Write streamed response bytes to disk and emit progress messages."""
+        downloaded = 0
+        with open(dest_path, "wb") as file_handle:
+            for chunk in response.iter_bytes(chunk_size=self.chunk_size):
+                file_handle.write(chunk)
+                downloaded += len(chunk)
+                self._notify_download_progress(downloaded, total_size, notify)
+
+    def _notify_download_progress(
+        self,
+        downloaded: int,
+        total_size: int,
+        notify: StatusCallback | None = None,
+    ) -> None:
+        """Emit a formatted progress message when total size is known."""
+        if total_size <= 0 or not notify:
+            return
+        percent = (downloaded / total_size) * 100
+        downloaded_mb = downloaded / (1024 * 1024)
+        total_mb = total_size / (1024 * 1024)
+        notify(f"Downloading: {percent:.1f}% ({downloaded_mb:.1f}/{total_mb:.1f} MB)")
+
+    def _cleanup_partial_file(self, dest_path: Path) -> None:
+        """Remove undersized partial download files after transfer failures."""
+        try:
+            if dest_path.exists() and dest_path.stat().st_size < MIN_FILE_SIZE:
+                dest_path.unlink()
+        except OSError:
+            return
 
     def close(self) -> None:
         """Close internal HTTP clients. Safe to call multiple times."""
