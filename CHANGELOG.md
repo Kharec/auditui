@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - complete test suite revamp
 - updated download cache naming to use `Author_Title` format with normalized separators
 - optimized library pagination fetch with bounded concurrent scheduling
+- adjusted library first-page probe order to prefer larger page sizes for medium libraries
+- removed eager search cache priming during library load to reduce startup work
 
 ### Fixed
 
 - reused library metadata for download filename generation to avoid `Unknown-Author_Unknown-Title` when title/author are already known in the UI
 - fixed Audible last-position request parameter handling after library client refactor
 - added retry behavior and explicit size diagnostics when downloaded files are too small
+- prevented table rendering crashes by generating unique row keys instead of using title-only keys
 
 ## [0.1.6] - 2026-02-16
 
