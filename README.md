@@ -2,7 +2,7 @@
 
 A terminal-based user interface (TUI) client for [Audible](https://www.audible.fr/), written in Python 3.
 
-Currently, the only available theme is Catppuccin Mocha, following their [style guide](https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md), as it's my preferred theme across most of my tools.
+The interface currently ships with a single built-in theme.
 
 ## Requirements
 
@@ -36,9 +36,9 @@ auditui --version
 
 All set, run `auditui configure` to set up authentication, and then `auditui` to start the TUI.
 
-### Workaround for Python 3.13 linux distribution
+### Workaround for Python 3.13 Linux distributions
 
-On some Linux distributions, Python 3.13 is already the default. So you have to install Python 3.12 manually before using `pipx`.
+On some Linux distributions, Python 3.13 is already the default. In that case, install Python 3.12 manually before using `pipx`.
 
 For Arch Linux:
 
@@ -52,7 +52,7 @@ Once you have Python 3.12, run:
 pipx install git+https://git.kharec.info/Kharec/auditui.git --python python3.12
 ```
 
-As Python <3.14 is supported on `master` branch of the upstream [`audible`](https://github.com/mkb79/Audible), this should be temporary until the next version.
+This workaround is temporary and depends on upstream `audible` compatibility updates.
 
 ## Upgrade
 
@@ -89,6 +89,8 @@ pipx upgrade auditui
 ## Cache
 
 Books are downloaded to `~/.cache/auditui/books`.
+
+Downloaded files use a normalized `Author_Title.aax` naming format. For example, `Stephen King` and `11/22/63` become `Stephen-King_11-22-63.aax`.
 
 The `d` key toggles the download state for the selected book: if the book is not cached, pressing `d` will download it; if it's already cached, pressing `d` will delete it from the cache.
 
@@ -145,7 +147,7 @@ This project uses [uv](https://github.com/astral-sh/uv) for dependency managemen
 $ uv sync
 # modify the code...
 # ...and run the TUI
-$ uv run python -m auditui.cli
+$ uv run auditui
 ```
 
 Don't forget to run the tests.
