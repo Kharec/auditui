@@ -1,5 +1,7 @@
 """Key bindings for the main app."""
 
+from textual.binding import Binding
+
 BINDINGS = [
     ("?", "show_help", "Help"),
     ("s", "show_stats", "Stats"),
@@ -10,7 +12,7 @@ BINDINGS = [
     ("a", "show_all", "All/Unfinished"),
     ("r", "refresh", "Refresh"),
     ("enter", "play_selected", "Play"),
-    ("space", "toggle_playback", "Pause/Resume"),
+    Binding("space", "toggle_playback", "Pause/Resume", priority=True),
     ("left", "seek_backward", "-30s"),
     ("right", "seek_forward", "+30s"),
     ("ctrl+left", "previous_chapter", "Previous chapter"),
