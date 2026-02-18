@@ -8,7 +8,7 @@ from textual.events import Resize
 from textual.widgets import DataTable, ProgressBar, Static
 
 from .. import __version__
-from ..constants import TABLE_COLUMN_DEFS, TABLE_CSS
+from ..constants import TABLE_COLUMN_DEFS
 
 
 class AppLayoutMixin:
