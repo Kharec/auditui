@@ -17,10 +17,7 @@ class LibraryClientFetchMixin:
         self, on_progress: StatusCallback | None = None
     ) -> list[LibraryItem]:
         """Fetch all library items from the API."""
-        response_groups = (
-            "contributors,media,product_attrs,product_desc,product_details,"
-            "is_finished,listening_status,percent_complete"
-        )
+        response_groups = "contributors,product_attrs,product_desc,is_finished,listening_status,percent_complete"
         return self._fetch_all_pages(response_groups, on_progress)
 
     def _fetch_page(
@@ -75,8 +72,7 @@ class LibraryClientFetchMixin:
         if len(first_page_items) < page_size:
             return all_items
 
-        estimated_pages = self._estimate_total_pages(
-            library_response, page_size)
+        estimated_pages = self._estimate_total_pages(library_response, page_size)
         page_results = self._fetch_remaining_pages(
             response_groups=response_groups,
             page_size=page_size,
