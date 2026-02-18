@@ -10,11 +10,8 @@ from ..ui import FilterScreen, HelpScreen, StatsScreen
 
 
 class AppActionsMixin:
-    def _get_selected_asin(self) -> str | None:
-        if not self.download_manager:
-            self.update_status(
-                "Not authenticated. Please restart and authenticate.")
-            return None
+    def _get_selected_item(self) -> dict | None:
+        """Return the currently selected library item from the table."""
         table = self.query_one("#library_table", DataTable)
         if table.row_count == 0:
             self.update_status("No books available")
@@ -23,10 +20,27 @@ class AppActionsMixin:
         if cursor_row >= len(self.current_items):
             self.update_status("Invalid selection")
             return None
+        return self.current_items[cursor_row]
+
+    def _get_naming_hints(self, item: dict | None) -> tuple[str | None, str | None]:
+        """Return preferred title and author values used for download filenames."""
+        if not item or not self.library_client:
+            return (None, None)
+        return (
+            self.library_client.extract_title(item),
+            self.library_client.extract_authors(item),
+        )
+
+    def _get_selected_asin(self) -> str | None:
+        if not self.download_manager:
+            self.update_status("Not authenticated. Please restart and authenticate.")
+            return None
         if not self.library_client:
             self.update_status("Library client not available")
             return None
-        selected_item = self.current_items[cursor_row]
+        selected_item = self._get_selected_item()
+        if not selected_item:
+            return None
         asin = self.library_client.extract_asin(selected_item)
         if not asin:
             self.update_status("Could not get ASIN for selected book")
@@ -36,7 +50,7 @@ class AppActionsMixin:
     def action_play_selected(self) -> None:
         asin = self._get_selected_asin()
         if asin:
-            self._start_playback_async(asin)
+            self._start_playback_async(asin, self._get_selected_item())
 
     def action_toggle_playback(self) -> None:
         if not self.playback.toggle_playback():
@@ -86,8 +100,7 @@ class AppActionsMixin:
             return
 
         if self.library_client.is_finished(selected_item):
-            self.call_from_thread(self.update_status,
-                                  "Already marked as finished")
+            self.call_from_thread(self.update_status, "Already marked as finished")
             return
 
         success = self.library_client.mark_as_finished(asin, selected_item)
@@ -132,28 +145,36 @@ class AppActionsMixin:
     def action_toggle_download(self) -> None:
         asin = self._get_selected_asin()
         if asin:
-            self._toggle_download_async(asin)
+            self._toggle_download_async(asin, self._get_selected_item())
 
     @work(exclusive=True, thread=True)
-    def _toggle_download_async(self, asin: str) -> None:
+    def _toggle_download_async(self, asin: str, item: dict | None = None) -> None:
         if not self.download_manager:
             return
 
+        preferred_title, preferred_author = self._get_naming_hints(item)
+
         if self.download_manager.is_cached(asin):
-            self.download_manager.remove_cached(
-                asin, self._thread_status_update)
+            self.download_manager.remove_cached(asin, self._thread_status_update)
         else:
             self.download_manager.get_or_download(
-                asin, self._thread_status_update)
+                asin,
+                self._thread_status_update,
+                preferred_title=preferred_title,
+                preferred_author=preferred_author,
+            )
 
         self.call_from_thread(self._refresh_table)
 
     @work(exclusive=True, thread=True)
-    def _start_playback_async(self, asin: str) -> None:
+    def _start_playback_async(self, asin: str, item: dict | None = None) -> None:
         if not self.download_manager:
             return
+        preferred_title, preferred_author = self._get_naming_hints(item)
         self.playback.prepare_and_start(
             self.download_manager,
             asin,
             self._thread_status_update,
+            preferred_title,
+            preferred_author,
         )
