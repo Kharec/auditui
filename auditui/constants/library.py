@@ -1,0 +1,5 @@
+"""Library and table formatting constants."""
+
+AUTHOR_NAME_MAX_LENGTH = 40
+AUTHOR_NAME_DISPLAY_LENGTH = 37
+PROGRESS_COLUMN_INDEX = 3
