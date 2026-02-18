@@ -45,12 +45,16 @@ class ControllerLifecycleMixin(ControllerStateMixin):
         try:
             proc, return_code = process_mod.run_ffplay(cmd)
             if proc is None:
-                if return_code == 0 and start_position > 0 and self.total_duration and start_position >= self.total_duration - 5:
+                if (
+                    return_code == 0
+                    and start_position > 0
+                    and self.total_duration
+                    and start_position >= self.total_duration - 5
+                ):
                     notify("Reached end of file")
                     self._reset_state()
                     return False
-                notify(
-                    f"Playback process exited immediately (code: {return_code})")
+                notify(f"Playback process exited immediately (code: {return_code})")
                 return False
             self.playback_process = proc
             self.is_playing = True
@@ -114,6 +118,8 @@ class ControllerLifecycleMixin(ControllerStateMixin):
         download_manager: DownloadManager,
         asin: str,
         status_callback: StatusCallback | None = None,
+        preferred_title: str | None = None,
+        preferred_author: str | None = None,
     ) -> bool:
         """Download AAX if needed, get activation bytes, then start playback. Returns True on success."""
         notify = status_callback or self.notify
@@ -121,7 +127,12 @@ class ControllerLifecycleMixin(ControllerStateMixin):
             notify("Could not download file")
             return False
         notify("Preparing playback...")
-        local_path = download_manager.get_or_download(asin, notify)
+        local_path = download_manager.get_or_download(
+            asin,
+            notify,
+            preferred_title=preferred_title,
+            preferred_author=preferred_author,
+        )
         if not local_path:
             notify("Could not download file")
             return False
@@ -136,14 +147,15 @@ class ControllerLifecycleMixin(ControllerStateMixin):
                 last = self.library_client.get_last_position(asin)
                 if last is not None and last > 0:
                     start_position = last
-                    notify(
-                        f"Resuming from {LibraryClient.format_time(start_position)}")
+                    notify(f"Resuming from {LibraryClient.format_time(start_position)}")
             except (OSError, ValueError, KeyError):
                 pass
         notify(f"Starting playback of {local_path.name}...")
         self.current_asin = asin
         self.last_save_time = time.time()
-        return self.start(local_path, activation_hex, notify, start_position, self.playback_speed)
+        return self.start(
+            local_path, activation_hex, notify, start_position, self.playback_speed
+        )
 
     def toggle_playback(self) -> bool:
         """Toggle between pause and resume. Returns True if an action was performed."""
@@ -160,7 +172,10 @@ class ControllerLifecycleMixin(ControllerStateMixin):
         return True
 
     def _restart_at_position(
-        self, new_position: float, new_speed: float | None = None, message: str | None = None
+        self,
+        new_position: float,
+        new_speed: float | None = None,
+        message: str | None = None,
     ) -> bool:
         """Stop current process and start again at new_position; optionally set speed and notify."""
         if not self.is_playing or not self.current_file_path:
@@ -170,7 +185,9 @@ class ControllerLifecycleMixin(ControllerStateMixin):
         speed = new_speed if new_speed is not None else saved["speed"]
         self._stop_process()
         time.sleep(0.2)
-        if self.start(saved["file_path"], saved["activation"], self.notify, new_position, speed):
+        if self.start(
+            saved["file_path"], saved["activation"], self.notify, new_position, speed
+        ):
             self.current_asin = saved["asin"]
             self.total_duration = saved["duration"]
             self.chapters = saved["chapters"]
