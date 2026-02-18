@@ -32,27 +32,25 @@ EXPECTED_BINDINGS: tuple[NormalizedBinding, ...] = (
 )
 
 
-def _normalize_binding(
-    binding: Binding | BindingTuple,
-) -> NormalizedBinding:
-    """Return key, action, description, and priority for a binding item."""
+def _normalize_binding(binding: Binding | BindingTuple) -> NormalizedBinding:
+    """Return key, action, description, and priority from one binding item."""
     if isinstance(binding, Binding):
         return (binding.key, binding.action, binding.description, binding.priority)
     key, action, description = binding
     return (key, action, description, False)
 
 
-def _normalize_bindings() -> list[NormalizedBinding]:
-    """Normalize all declared bindings to a comparable shape."""
+def _all_bindings() -> list[NormalizedBinding]:
+    """Normalize all app bindings into a stable comparable structure."""
     return [_normalize_binding(binding) for binding in BINDINGS]
 
 
 def test_bindings_match_expected_shortcuts() -> None:
-    """Ensure the app ships with the expected binding set and actions."""
-    assert _normalize_bindings() == list(EXPECTED_BINDINGS)
+    """Ensure the shipped shortcut list stays stable and explicit."""
+    assert _all_bindings() == list(EXPECTED_BINDINGS)
 
 
 def test_binding_keys_are_unique() -> None:
-    """Ensure each key is defined once to avoid ambiguous key dispatch."""
-    keys = [binding[0] for binding in _normalize_bindings()]
+    """Ensure each key is defined only once to avoid dispatch ambiguity."""
+    keys = [binding[0] for binding in _all_bindings()]
     assert len(keys) == len(set(keys))
