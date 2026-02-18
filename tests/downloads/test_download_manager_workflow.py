@@ -128,3 +128,33 @@ def test_get_or_download_uses_preferred_naming_hints(
         preferred_author="Stephen King",
     )
     assert captured == [("11/22/63", "Stephen King")]
+
+
+def test_get_or_download_retries_when_file_is_too_small(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ensure small downloads are retried and then reported with exact byte size."""
+    manager = _bare_manager(tmp_path)
+    monkeypatch.setattr(
+        manager,
+        "_get_filename_stems_from_asin",
+        lambda asin, preferred_title=None, preferred_author=None: ["Author_Book"],
+    )
+    monkeypatch.setattr(
+        manager, "_get_download_link", lambda asin, notify=None: "https://ok"
+    )
+    attempts = {"count": 0}
+
+    def write_small_file(url: str, path: Path, notify=None) -> Path:
+        """Write an undersized file to trigger retry and final failure messages."""
+        del url, notify
+        attempts["count"] += 1
+        path.write_bytes(b"x" * 100)
+        return path
+
+    monkeypatch.setattr(manager, "_download_file", write_small_file)
+    messages: list[str] = []
+    assert manager.get_or_download("ASIN", notify=messages.append) is None
+    assert attempts["count"] == 2
+    assert any("retrying" in message for message in messages)
+    assert any("file too small" in message for message in messages)
