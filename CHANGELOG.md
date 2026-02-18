@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - massive code refactoring
 - complete test suite revamp
-- updated download cache naming to use `Author_Title` format with normalized separators.
+- updated download cache naming to use `Author_Title` format with normalized separators
 
 ### Fixed
 
-- reused library metadata for download filename generation to avoid `Unknown-Author_Unknown-Title` when title/author are already known in the UI.
+- reused library metadata for download filename generation to avoid `Unknown-Author_Unknown-Title` when title/author are already known in the UI
 - optimize pagination fetch with bounded concurrent scheduling in library
 
 ## [0.1.6] - 2026-02-16
