@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 from auditui.playback import controller_lifecycle as lifecycle_mod
 from auditui.playback.controller import PlaybackController
@@ -62,14 +63,21 @@ def test_prepare_and_start_uses_last_position(monkeypatch) -> None:
     """Ensure prepare flow resumes from saved position when available."""
     messages: list[str] = []
     lib = type("Lib", (), {"get_last_position": lambda self, asin: 75.0})()
-    controller = PlaybackController(messages.append, lib)
+    controller = PlaybackController(messages.append, cast(Any, lib))
     started: list[tuple] = []
 
     class DM:
         """Download manager shim returning path and activation token."""
 
-        def get_or_download(self, asin, notify):
+        def get_or_download(
+            self,
+            asin,
+            notify,
+            preferred_title: str | None = None,
+            preferred_author: str | None = None,
+        ):
             """Return deterministic downloaded file path."""
+            del asin, notify, preferred_title, preferred_author
             return Path("book.aax")
 
         def get_activation_bytes(self):
@@ -78,7 +86,7 @@ def test_prepare_and_start_uses_last_position(monkeypatch) -> None:
 
     monkeypatch.setattr(controller, "start", lambda *args: started.append(args) or True)
     monkeypatch.setattr(lifecycle_mod.time, "time", lambda: 200.0)
-    assert controller.prepare_and_start(DM(), "ASIN") is True
+    assert controller.prepare_and_start(cast(Any, DM()), "ASIN") is True
     assert started and started[0][3] == 75.0
     assert "Resuming from 01:15" in messages
 
@@ -87,7 +95,7 @@ def test_toggle_playback_uses_pause_and_resume_paths(monkeypatch) -> None:
     """Ensure toggle dispatches pause or resume based on paused flag."""
     controller, _ = _controller()
     controller.is_playing = True
-    controller.playback_process = Proc(None)
+    controller.playback_process = cast(Any, Proc(None))
     called: list[str] = []
     monkeypatch.setattr(controller, "pause", lambda: called.append("pause"))
     monkeypatch.setattr(controller, "resume", lambda: called.append("resume"))
