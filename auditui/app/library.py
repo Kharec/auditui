@@ -16,16 +16,15 @@ class AppLibraryMixin:
             return
 
         try:
-            all_items = self.library_client.fetch_all_items(
-                self._thread_status_update)
+            all_items = self.library_client.fetch_all_items(self._thread_status_update)
             self.call_from_thread(self.on_library_loaded, all_items)
         except (OSError, ValueError, KeyError) as exc:
             self.call_from_thread(self.on_library_error, str(exc))
 
     def on_library_loaded(self, items: list[LibraryItem]) -> None:
+        """Store fetched items and refresh the active library view."""
         self.all_items = items
         self._search_text_cache.clear()
-        self._prime_search_cache(items)
         self.update_status(f"Loaded {len(items)} books")
         if self.show_all_mode:
             self.show_all()
