@@ -15,6 +15,7 @@ from textual.widgets import DataTable, Static
 
 class AppTableMixin:
     def _populate_table(self, items: list[LibraryItem]) -> None:
+        """Render library items into the table with stable unique row keys."""
         table = self.query_one("#library_table", DataTable)
         table.clear()
 
@@ -22,17 +23,40 @@ class AppTableMixin:
             self.update_status("No books found.")
             return
 
-        for item in items:
+        used_keys: set[str] = set()
+        for index, item in enumerate(items):
             title, author, runtime, progress, downloaded = format_item_as_row(
                 item, self.library_client, self.download_manager
             )
-            table.add_row(title, author, runtime,
-                          progress, downloaded, key=title)
+            row_key = self._build_row_key(item, title, index, used_keys)
+            table.add_row(title, author, runtime, progress, downloaded, key=row_key)
 
         self.current_items = items
         status = self.query_one("#status", Static)
         status.display = False
         self._apply_column_widths(table)
+
+    def _build_row_key(
+        self,
+        item: LibraryItem,
+        title: str,
+        index: int,
+        used_keys: set[str],
+    ) -> str:
+        """Return a unique table row key derived from ASIN when available."""
+        asin = self.library_client.extract_asin(item) if self.library_client else None
+        base_key = asin or f"{title}#{index}"
+        if base_key not in used_keys:
+            used_keys.add(base_key)
+            return base_key
+
+        suffix = 2
+        candidate = f"{base_key}#{suffix}"
+        while candidate in used_keys:
+            suffix += 1
+            candidate = f"{base_key}#{suffix}"
+        used_keys.add(candidate)
+        return candidate
 
     def _refresh_table(self) -> None:
         if self.current_items:
@@ -79,11 +103,9 @@ class AppTableMixin:
         items = self.all_items
 
         if self.filter_text:
-            items = filter_items(items, self.filter_text,
-                                 self._get_search_text)
+            items = filter_items(items, self.filter_text, self._get_search_text)
             self._populate_table(items)
-            self.update_status(
-                f"Filter: '{self.filter_text}' ({len(items)} books)")
+            self.update_status(f"Filter: '{self.filter_text}' ({len(items)} books)")
             return
 
         if not self.show_all_mode and self.library_client:
@@ -97,6 +119,7 @@ class AppTableMixin:
         if cached is not None:
             return cached
         from ..library import build_search_text
+
         search_text = build_search_text(item, self.library_client)
         self._search_text_cache[cache_key] = search_text
         return search_text
