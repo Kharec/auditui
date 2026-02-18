@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, cast
 
 from auditui.app.actions import AppActionsMixin
 
@@ -41,7 +42,13 @@ class DummyActionsApp(AppActionsMixin):
         self.current_items: list[dict] = []
         self.download_manager = object()
         self.library_client = type(
-            "Library", (), {"extract_asin": lambda self, item: item.get("asin")}
+            "Library",
+            (),
+            {
+                "extract_asin": lambda self, item: item.get("asin"),
+                "extract_title": lambda self, item: item.get("title"),
+                "extract_authors": lambda self, item: item.get("authors"),
+            },
         )()
         self.playback = FakePlayback(True)
         self.filter_text = "hello"
@@ -60,10 +67,6 @@ class DummyActionsApp(AppActionsMixin):
     def _refresh_filtered_view(self) -> None:
         """Record refresh invocations for filter tests."""
         self._refreshed += 1
-
-    def _start_playback_async(self, asin: str) -> None:
-        """Capture async playback launch argument."""
-        self.messages.append(f"start:{asin}")
 
 
 def test_get_selected_asin_requires_non_empty_table() -> None:
@@ -85,10 +88,18 @@ def test_get_selected_asin_returns_current_row_asin() -> None:
 def test_action_play_selected_starts_async_playback() -> None:
     """Ensure play action calls async starter with selected ASIN."""
     app = DummyActionsApp()
+    seen: list[str] = []
+
+    def capture_start(asin: str, item: dict | None = None) -> None:
+        """Capture playback start arguments for assertions."""
+        suffix = f":{item.get('title')}" if item else ""
+        seen.append(f"start:{asin}{suffix}")
+
+    setattr(cast(Any, app), "_start_playback_async", capture_start)
     app._table = FakeTable(row_count=1, cursor_row=0)
-    app.current_items = [{"asin": "ASIN"}]
+    app.current_items = [{"asin": "ASIN", "title": "Book"}]
     app.action_play_selected()
-    assert app.messages[-1] == "start:ASIN"
+    assert seen[-1] == "start:ASIN:Book"
 
 
 def test_action_toggle_playback_shows_hint_when_no_playback() -> None:
