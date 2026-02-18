@@ -64,28 +64,61 @@ class DownloadManager:
         if notify:
             notify(f"Downloading to {local_path.name}...")
 
+        if not self._download_to_valid_file(asin, local_path, notify):
+            return None
+
+        return local_path
+
+    def _download_to_valid_file(
+        self,
+        asin: str,
+        local_path: Path,
+        notify: StatusCallback | None = None,
+    ) -> bool:
+        """Download with one retry and ensure resulting file has a valid size."""
+        for attempt in range(1, 3):
+            if not self._attempt_download(asin, local_path, notify):
+                return False
+            if local_path.exists() and local_path.stat().st_size >= MIN_FILE_SIZE:
+                return True
+
+            downloaded_size = local_path.stat().st_size if local_path.exists() else 0
+            if notify and attempt == 1:
+                notify(
+                    f"Downloaded file too small ({downloaded_size} bytes), retrying..."
+                )
+            if notify and attempt == 2:
+                notify(
+                    f"Download failed: file too small ({downloaded_size} bytes, expected >= {MIN_FILE_SIZE})"
+                )
+            self._cleanup_partial_file(local_path)
+
+        return False
+
+    def _attempt_download(
+        self,
+        asin: str,
+        local_path: Path,
+        notify: StatusCallback | None = None,
+    ) -> bool:
+        """Perform one download attempt including link lookup and URL validation."""
         dl_link = self._get_download_link(asin, notify=notify)
         if not dl_link:
             if notify:
                 notify("Failed to get download link")
-            return None
+            return False
 
         if not self._validate_download_url(dl_link):
             if notify:
                 notify("Invalid download URL")
-            return None
+            return False
 
         if not self._download_file(dl_link, local_path, notify):
             if notify:
                 notify("Download failed")
-            return None
+            return False
 
-        if not local_path.exists() or local_path.stat().st_size < MIN_FILE_SIZE:
-            if notify:
-                notify("Download failed or file too small")
-            return None
-
-        return local_path
+        return True
 
     def get_activation_bytes(self) -> str | None:
         """Return activation bytes as hex string for ffplay/ffmpeg."""
