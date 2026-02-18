@@ -1,3 +1,3 @@
-"""Auditui: Audible TUI client. One folder per module; all code lives inside module packages."""
+"""Auditui: Audible TUI client"""
 
-__version__ = "0.1.6"
+__version__ = "0.2.0"
