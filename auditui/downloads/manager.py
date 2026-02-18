@@ -1,27 +1,25 @@
-"""Download helpers for Audible content."""
+"""Obtains AAX files from Audible (cache or download) and provides activation bytes."""
 
 import re
 from pathlib import Path
-from typing import Callable
 from urllib.parse import urlparse
 
 import audible
 import httpx
 from audible.activation_bytes import get_activation_bytes
 
-from .constants import (
+from ..constants import (
     CACHE_DIR,
     DEFAULT_CHUNK_SIZE,
     DEFAULT_CODEC,
     DOWNLOAD_URL,
     MIN_FILE_SIZE,
 )
-
-StatusCallback = Callable[[str], None]
+from ..types import StatusCallback
 
 
 class DownloadManager:
-    """Handle retrieval and download of Audible titles."""
+    """Obtains AAX files from Audible (cache or download) and provides activation bytes."""
 
     def __init__(
         self,
@@ -35,16 +33,18 @@ class DownloadManager:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.chunk_size = chunk_size
-        self._http_client = httpx.Client(auth=auth, timeout=30.0, follow_redirects=True)
+        self._http_client = httpx.Client(
+            auth=auth, timeout=30.0, follow_redirects=True)
         self._download_client = httpx.Client(
-            timeout=httpx.Timeout(connect=30.0, read=None, write=30.0, pool=30.0),
+            timeout=httpx.Timeout(connect=30.0, read=None,
+                                  write=30.0, pool=30.0),
             follow_redirects=True,
         )
 
     def get_or_download(
         self, asin: str, notify: StatusCallback | None = None
     ) -> Path | None:
-        """Get local path of AAX file, downloading if missing."""
+        """Return local path to AAX file; download and cache if not present."""
         title = self._get_name_from_asin(asin) or asin
         safe_title = self._sanitize_filename(title)
         local_path = self.cache_dir / f"{safe_title}.aax"
@@ -81,7 +81,7 @@ class DownloadManager:
         return local_path
 
     def get_activation_bytes(self) -> str | None:
-        """Get activation bytes as hex string."""
+        """Return activation bytes as hex string for ffplay/ffmpeg."""
         try:
             activation_bytes = get_activation_bytes(self.auth)
             if isinstance(activation_bytes, bytes):
@@ -91,7 +91,7 @@ class DownloadManager:
             return None
 
     def get_cached_path(self, asin: str) -> Path | None:
-        """Get the cached file path for a book if it exists."""
+        """Return path to cached AAX file if it exists and is valid size."""
         title = self._get_name_from_asin(asin) or asin
         safe_title = self._sanitize_filename(title)
         local_path = self.cache_dir / f"{safe_title}.aax"
@@ -100,11 +100,11 @@ class DownloadManager:
         return None
 
     def is_cached(self, asin: str) -> bool:
-        """Check if a book is already cached."""
+        """Return True if the title is present in cache with valid size."""
         return self.get_cached_path(asin) is not None
 
     def remove_cached(self, asin: str, notify: StatusCallback | None = None) -> bool:
-        """Remove a cached book file."""
+        """Delete the cached AAX file for the given ASIN. Returns True on success."""
         cached_path = self.get_cached_path(asin)
         if not cached_path:
             if notify:
@@ -151,7 +151,7 @@ class DownloadManager:
         codec: str = DEFAULT_CODEC,
         notify: StatusCallback | None = None,
     ) -> str | None:
-        """Get download link for book."""
+        """Obtain CDN download URL for the given ASIN and codec."""
         if self.auth.adp_token is None:
             if notify:
                 notify("Missing ADP token (not authenticated?)")
@@ -189,7 +189,7 @@ class DownloadManager:
     def _download_file(
         self, url: str, dest_path: Path, notify: StatusCallback | None = None
     ) -> Path | None:
-        """Download file from URL to destination."""
+        """Stream download from URL to dest_path; reports progress via notify."""
         try:
             with self._download_client.stream("GET", url) as response:
                 response.raise_for_status()
@@ -240,7 +240,7 @@ class DownloadManager:
             return None
 
     def close(self) -> None:
-        """Close the HTTP clients and release resources."""
+        """Close internal HTTP clients. Safe to call multiple times."""
         if hasattr(self, "_http_client"):
             self._http_client.close()
         if hasattr(self, "_download_client"):

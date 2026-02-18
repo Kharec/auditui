@@ -2,24 +2,24 @@ from pathlib import Path
 
 import pytest
 
-from auditui import downloads
+from auditui.downloads import DownloadManager
 from auditui.constants import MIN_FILE_SIZE
 
 
 def test_sanitize_filename() -> None:
-    dm = downloads.DownloadManager.__new__(downloads.DownloadManager)
+    dm = DownloadManager.__new__(DownloadManager)
     assert dm._sanitize_filename('a<>:"/\\|?*b') == "a_________b"
 
 
 def test_validate_download_url() -> None:
-    dm = downloads.DownloadManager.__new__(downloads.DownloadManager)
+    dm = DownloadManager.__new__(DownloadManager)
     assert dm._validate_download_url("https://example.com/file") is True
     assert dm._validate_download_url("http://example.com/file") is True
     assert dm._validate_download_url("ftp://example.com/file") is False
 
 
 def test_cached_path_and_remove(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    dm = downloads.DownloadManager.__new__(downloads.DownloadManager)
+    dm = DownloadManager.__new__(DownloadManager)
     dm.cache_dir = tmp_path
 
     monkeypatch.setattr(dm, "_get_name_from_asin", lambda asin: "My Book")
@@ -37,7 +37,7 @@ def test_cached_path_and_remove(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
 
 
 def test_cached_path_ignores_small_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    dm = downloads.DownloadManager.__new__(downloads.DownloadManager)
+    dm = DownloadManager.__new__(DownloadManager)
     dm.cache_dir = tmp_path
 
     monkeypatch.setattr(dm, "_get_name_from_asin", lambda asin: "My Book")

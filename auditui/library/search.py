@@ -1,14 +1,16 @@
-"""Search helpers for filtering library items."""
+"""Text search over library items for the filter feature."""
 
 from __future__ import annotations
 
 from typing import Callable
 
-from .library import LibraryClient
+from ..types import LibraryItem
+
+from .client import LibraryClient
 
 
-def build_search_text(item: dict, library_client: LibraryClient | None) -> str:
-    """Build a lowercase search string for an item."""
+def build_search_text(item: LibraryItem, library_client: LibraryClient | None) -> str:
+    """Build a single lowercase string from title and authors for matching."""
     if library_client:
         title = library_client.extract_title(item)
         authors = library_client.extract_authors(item)
@@ -23,11 +25,11 @@ def build_search_text(item: dict, library_client: LibraryClient | None) -> str:
 
 
 def filter_items(
-    items: list[dict],
+    items: list[LibraryItem],
     filter_text: str,
-    get_search_text: Callable[[dict], str],
-) -> list[dict]:
-    """Filter items by a search string."""
+    get_search_text: Callable[[LibraryItem], str],
+) -> list[LibraryItem]:
+    """Return items whose search text contains filter_text (case-insensitive)."""
     if not filter_text:
         return items
     filter_lower = filter_text.lower()

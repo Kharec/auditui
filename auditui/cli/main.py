@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-"""Auditui entrypoint."""
+"""CLI entrypoint: configure subcommand or authenticate and run the TUI."""
 
 import argparse
 import sys
@@ -12,7 +11,6 @@ from auditui.constants import AUTH_PATH
 
 
 def main() -> None:
-    """Authenticate and launch the app."""
     parser = argparse.ArgumentParser(prog="auditui")
     parser.add_argument(
         "-v",
@@ -52,7 +50,3 @@ def main() -> None:
 
     app = Auditui(auth=auth, client=client)
     app.run()
-
-
-if __name__ == "__main__":
-    main()

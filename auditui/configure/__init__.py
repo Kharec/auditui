@@ -1,4 +1,4 @@
-"""Configuration helpers for the Auditui app."""
+"""Interactive setup of Audible credentials; writes auth and config files."""
 
 import json
 from getpass import getpass
@@ -6,13 +6,13 @@ from pathlib import Path
 
 import audible
 
-from .constants import AUTH_PATH, CONFIG_PATH
+from ..constants import AUTH_PATH, CONFIG_PATH
 
 
 def configure(
     auth_path: Path = AUTH_PATH,
 ) -> tuple[audible.Authenticator, audible.Client]:
-    """Force re-authentication and save credentials."""
+    """Prompt for email/password/locale, authenticate, and save auth.json and config.json."""
     if auth_path.exists():
         response = input(
             "Configuration already exists. Are you sure you want to overwrite it? (y/N): "
@@ -26,7 +26,8 @@ def configure(
     email = input("\nEmail: ")
     password = getpass("Password: ")
     marketplace = input(
-        "Marketplace locale (default: US): ").strip().upper() or "US"
+        "Marketplace locale (default: US): "
+    ).strip().upper() or "US"
 
     authenticator = audible.Authenticator.from_login(
         username=email, password=password, locale=marketplace

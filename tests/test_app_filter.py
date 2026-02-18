@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 from auditui.app import Auditui
-from auditui.search_utils import build_search_text, filter_items
+from auditui.library import build_search_text, filter_items
 
 
 class StubLibrary:

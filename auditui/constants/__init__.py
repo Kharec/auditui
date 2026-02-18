@@ -1,4 +1,4 @@
-"""Shared constants for the Auditui application."""
+"""Paths, API/config values, and CSS used across the application."""
 
 from pathlib import Path
 

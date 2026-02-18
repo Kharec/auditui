@@ -1,4 +1,4 @@
-"""Media information loading for Audible content."""
+"""Duration and chapter list for AAX files via ffprobe."""
 
 import json
 import shutil
@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def load_media_info(path: Path, activation_hex: str | None = None) -> tuple[float | None, list[dict]]:
-    """Load media information including duration and chapters using ffprobe."""
+    """Return (total_duration_seconds, chapters) for the AAX file. Chapters have start_time, end_time, title."""
     if not shutil.which("ffprobe"):
         return None, []
 

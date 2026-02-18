@@ -145,7 +145,7 @@ This project uses [uv](https://github.com/astral-sh/uv) for dependency managemen
 $ uv sync
 # modify the code...
 # ...and run the TUI
-$ uv run python -m auditui.cli
+$ uv run auditui
 ```
 
 Don't forget to run the tests.

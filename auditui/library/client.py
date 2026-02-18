@@ -1,21 +1,19 @@
-"""Library helpers for fetching and formatting Audible data."""
+"""Client for the Audible library API."""
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable
 
 import audible
 
-
-ProgressCallback = Callable[[str], None]
+from ..types import LibraryItem, StatusCallback
 
 
 class LibraryClient:
-    """Helper for interacting with the Audible library."""
+    """Client for the Audible library API. Fetches items, extracts metadata, and updates positions."""
 
     def __init__(self, client: audible.Client) -> None:
         self.client = client
 
-    def fetch_all_items(self, on_progress: ProgressCallback | None = None) -> list:
+    def fetch_all_items(self, on_progress: StatusCallback | None = None) -> list[LibraryItem]:
         """Fetch all library items from the API."""
         response_groups = (
             "contributors,media,product_attrs,product_desc,product_details,"
@@ -25,8 +23,8 @@ class LibraryClient:
 
     def _fetch_page(
         self, page: int, page_size: int, response_groups: str
-    ) -> tuple[int, list[dict]]:
-        """Fetch a single page of library items."""
+    ) -> tuple[int, list[LibraryItem]]:
+        """Fetch a single page of library items from the API."""
         library = self.client.get(
             path="library",
             num_results=page_size,
@@ -37,9 +35,9 @@ class LibraryClient:
         return page, list(items)
 
     def _fetch_all_pages(
-        self, response_groups: str, on_progress: ProgressCallback | None = None
-    ) -> list:
-        """Fetch all pages of library items from the API using maximum parallel fetching."""
+        self, response_groups: str, on_progress: StatusCallback | None = None
+    ) -> list[LibraryItem]:
+        """Fetch all pages of library items using parallel requests."""
         library_response = None
         page_size = 200
 
@@ -63,7 +61,7 @@ class LibraryClient:
         if not first_page_items:
             return []
 
-        all_items: list[dict] = list(first_page_items)
+        all_items: list[LibraryItem] = list(first_page_items)
         if on_progress:
             on_progress(f"Fetched page 1 ({len(first_page_items)} items)...")
 
@@ -80,7 +78,7 @@ class LibraryClient:
             estimated_pages = 500
 
         max_workers = 50
-        page_results: dict[int, list[dict]] = {}
+        page_results: dict[int, list[LibraryItem]] = {}
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_page: dict = {}
@@ -119,8 +117,8 @@ class LibraryClient:
 
         return all_items
 
-    def extract_title(self, item: dict) -> str:
-        """Extract title from library item."""
+    def extract_title(self, item: LibraryItem) -> str:
+        """Return the book title from a library item."""
         product = item.get("product", {})
         return (
             product.get("title")
@@ -128,8 +126,8 @@ class LibraryClient:
             or product.get("asin", "Unknown Title")
         )
 
-    def extract_authors(self, item: dict) -> str:
-        """Extract author names from library item."""
+    def extract_authors(self, item: LibraryItem) -> str:
+        """Return comma-separated author names from a library item."""
         product = item.get("product", {})
         authors = product.get("authors") or product.get("contributors") or []
         if not authors and "authors" in item:
@@ -139,8 +137,8 @@ class LibraryClient:
                         for a in authors if isinstance(a, dict)]
         return ", ".join(author_names) or "Unknown"
 
-    def extract_runtime_minutes(self, item: dict) -> int | None:
-        """Extract runtime in minutes from library item."""
+    def extract_runtime_minutes(self, item: LibraryItem) -> int | None:
+        """Return runtime in minutes if present."""
         product = item.get("product", {})
         runtime_fields = [
             "runtime_length_min",
@@ -165,8 +163,8 @@ class LibraryClient:
             return int(runtime)
         return None
 
-    def extract_progress_info(self, item: dict) -> float | None:
-        """Extract progress percentage from library item."""
+    def extract_progress_info(self, item: LibraryItem) -> float | None:
+        """Return progress percentage (0–100) if present."""
         percent_complete = item.get("percent_complete")
         listening_status = item.get("listening_status", {})
 
@@ -175,13 +173,13 @@ class LibraryClient:
 
         return float(percent_complete) if percent_complete is not None else None
 
-    def extract_asin(self, item: dict) -> str | None:
-        """Extract ASIN from library item."""
+    def extract_asin(self, item: LibraryItem) -> str | None:
+        """Return the ASIN for a library item."""
         product = item.get("product", {})
         return item.get("asin") or product.get("asin")
 
-    def is_finished(self, item: dict) -> bool:
-        """Check if a library item is finished."""
+    def is_finished(self, item: LibraryItem) -> bool:
+        """Return True if the item is marked or inferred as finished."""
         is_finished_flag = item.get("is_finished")
         percent_complete = item.get("percent_complete")
         listening_status = item.get("listening_status")
@@ -194,8 +192,8 @@ class LibraryClient:
                 percent_complete = listening_status.get("percent_complete", 0)
 
         return bool(is_finished_flag) or (
-            isinstance(percent_complete, (int, float)
-                       ) and percent_complete >= 100
+            isinstance(percent_complete, (int, float))
+            and percent_complete >= 100
         )
 
     def get_last_position(self, asin: str) -> float | None:
@@ -227,7 +225,7 @@ class LibraryClient:
             return None
 
     def _get_content_reference(self, asin: str) -> dict | None:
-        """Get content reference data including ACR and version."""
+        """Fetch content reference (ACR and version) for position updates."""
         try:
             response = self.client.get(
                 path=f"1.0/content/{asin}/metadata",
@@ -242,7 +240,7 @@ class LibraryClient:
             return None
 
     def _update_position(self, asin: str, position_seconds: float) -> bool:
-        """Update the playback position for a book."""
+        """Persist playback position to the API. Returns True on success."""
         if position_seconds < 0:
             return False
 
@@ -273,7 +271,7 @@ class LibraryClient:
             return False
 
     def save_last_position(self, asin: str, position_seconds: float) -> bool:
-        """Save the last playback position for a book."""
+        """Save playback position to Audible. Returns True on success."""
         if position_seconds <= 0:
             return False
         return self._update_position(asin, position_seconds)
@@ -282,7 +280,7 @@ class LibraryClient:
     def format_duration(
         value: int | None, unit: str = "minutes", default_none: str | None = None
     ) -> str | None:
-        """Format duration value into a compact string."""
+        """Format a duration value as e.g. 2h30m or 45m."""
         if value is None or value <= 0:
             return default_none
 
@@ -296,8 +294,8 @@ class LibraryClient:
             return f"{hours}h{minutes:02d}" if minutes else f"{hours}h"
         return f"{minutes}m"
 
-    def mark_as_finished(self, asin: str, item: dict | None = None) -> bool:
-        """Mark a book as finished by setting position to the end."""
+    def mark_as_finished(self, asin: str, item: LibraryItem | None = None) -> bool:
+        """Mark a book as finished on Audible. Optionally mutates item in place."""
         total_ms = self._get_runtime_ms(asin, item)
         if not total_ms:
             return False
@@ -321,8 +319,8 @@ class LibraryClient:
         except Exception:
             return False
 
-    def _get_runtime_ms(self, asin: str, item: dict | None = None) -> int | None:
-        """Get total runtime in milliseconds."""
+    def _get_runtime_ms(self, asin: str, item: LibraryItem | None = None) -> int | None:
+        """Return total runtime in ms from item or API."""
         if item:
             runtime_min = self.extract_runtime_minutes(item)
             if runtime_min:
@@ -340,7 +338,7 @@ class LibraryClient:
             return None
 
     def _get_acr(self, asin: str) -> str | None:
-        """Get ACR token needed for position updates."""
+        """Fetch ACR token required for position and finish updates."""
         try:
             response = self.client.post(
                 path=f"1.0/content/{asin}/licenserequest",
@@ -356,7 +354,7 @@ class LibraryClient:
 
     @staticmethod
     def format_time(seconds: float) -> str:
-        """Format seconds as HH:MM:SS or MM:SS."""
+        """Format seconds as HH:MM:SS or MM:SS for display."""
         total_seconds = int(seconds)
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
