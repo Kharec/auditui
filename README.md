@@ -25,7 +25,7 @@ The interface currently ships with a single built-in theme.
 Use [`pipx`](https://pipx.pypa.io/latest/installation/) to install `auditui`:
 
 ```bash
-pipx install git+https://git.kharec.info/Kharec/auditui.git
+pipx install auditui
 ```
 
 Check the version to ensure installation was successful:
@@ -49,7 +49,7 @@ yay -S python312
 Once you have Python 3.12, run:
 
 ```bash
-pipx install git+https://git.kharec.info/Kharec/auditui.git --python python3.12
+pipx install auditui --python python3.12
 ```
 
 This workaround is temporary and depends on upstream `audible` compatibility updates.
